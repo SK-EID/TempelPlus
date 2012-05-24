@@ -1,0 +1,44 @@
+<project basedir="." default="" name="TempelPlus build">
+
+	<property name="build.dir" location="build" />
+
+
+	<path id="libraries">
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="JDigiDoc/lib">
+			<include name="*.jar" />
+		</fileset>
+	   <fileset dir="JDigiDoc">
+	         <include name="*.jar" />
+	   </fileset>
+	</path>
+
+	<target name="compile" depends="run">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.dir}/classes" />
+		<javac classpathref="libraries" debug="on"
+             deprecation="on" destdir="${build.dir}/classes"
+             includes="**/*.java" optimize="on" encoding="UTF-8">
+			<compilerarg value="-Xlint:unchecked"/>
+			<src path="src"/>
+		</javac>
+		<jar basedir="${build.dir}/classes" destfile="${build.dir}/TempelPlus.jar"/>
+		<copy file="${build.dir}/TempelPlus.jar" todir="."/>
+	</target>
+	
+  <target name="run" depends="">
+      <delete dir="${build.dir}"/>
+      <mkdir dir="${build.dir}" />
+      <mkdir dir="${build.dir}/classes" />
+      <javac classpathref="libraries" debug="on"
+             deprecation="on" destdir="${build.dir}/classes"
+             includes="**/Run.java" optimize="on" encoding="UTF-8">
+         <src path="src"/>
+      	<compilerarg value="-Xlint:unchecked"/>
+      </javac>
+      <jar basedir="${build.dir}/classes" destfile="${build.dir}/Run.jar"/>
+      <copy file="${build.dir}/Run.jar" todir="."/>
+   </target>
+</project>
