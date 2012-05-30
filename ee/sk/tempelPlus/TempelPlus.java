@@ -8,8 +8,13 @@ package ee.sk.tempelPlus;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -19,10 +24,17 @@ import org.apache.log4j.PropertyConfigurator;
 
 import ee.sk.digidoc.DigiDocException;
 import ee.sk.tempelPlus.util.Config;
+import ee.sk.tempelPlus.util.PinReader;
 import ee.sk.tempelPlus.util.TempelPlusException;
 import ee.sk.tempelPlus.util.console.TextDevice;
 import ee.sk.utils.ConfigManager;
 
+
+/** Main program
+ * Tempel+ starts, then signing, verifying, decrypting, extracting etc process is executed, program ends.
+ * @author Erik Kaju
+ *
+ */
 
 public abstract class TempelPlus {
 	// Käsud
@@ -38,7 +50,7 @@ public abstract class TempelPlus {
 	public boolean follow = false;
 	public File outputFolder;
 	private static String configFile = null;
-	public static final String version = "v1.0.0";
+	public static final String version = "v1.1.0";
 	static long start = 0;
 
 	private static Logger log = null;
@@ -46,6 +58,13 @@ public abstract class TempelPlus {
 	public final String OUTPUT_F = "-output_folder";
 	public final String REM_INPUT = "-remove_input";
 	public final String FOLLOW = "-follow";
+	public final String PARAMPIN = "-pin";
+	
+	public boolean usingOutPutFolder = false;
+	boolean firstRun = true;
+	
+	String pin;
+	public String commandParameterPin = null;
 
 	public static void main(String[] args) throws DigiDocException
 	{
@@ -311,19 +330,91 @@ public abstract class TempelPlus {
       return cwd;
    }
 
-	public String makeName(String name, String ext) throws TempelPlusException {
+   
+    /** Makes filename, adds (n+1) to the name if needed
+     * @param nameAndExtension - filename including file extension
+     * @return new filename with extension (AbsolutePath)
+     */
+    public String makeName(String nameAndExtension){
+    	String name = nameAndExtension.substring(0, nameAndExtension.lastIndexOf("."));
+    	String extension = nameAndExtension.substring(nameAndExtension.lastIndexOf(".")+1, (nameAndExtension.length()));
+    	
+    	File f = checkIfNameNumbersNeeded(name, extension);
+		
+		log.debug("Made file:" + f.getAbsolutePath());
+		return f.getAbsolutePath();
+    	
+    }
+	/** Makes filename, adds (n+1) to the name if needed
+	 * @param name - file extension
+	 * @param newExtension - (target) file extension
+	 * @return new filename with extension (AbsolutePath)
+	 * @throws TempelPlusException
+	 */
+	public String makeName(String name, String newExtension) throws TempelPlusException {
+		
 		if (name.contains("."))
 			name = name.substring(0, name.lastIndexOf("."));
-		File f = new File(name + "." + ext);
-		if (f.exists()) {
-			log.error("File already exists:" + f.getAbsolutePath());
-			exit(1);
-		}
+		
+		File f = checkIfNameNumbersNeeded(name, newExtension);
+		
 		log.debug("Made file:" + f.getAbsolutePath());
 		return f.getAbsolutePath();
 	}
 
+	/** Returns new File if filename was inappropriate adds (n+1) to the name
+	 * @param name
+	 * @param extension - may be used "" or null
+	 * @return
+	 */
+	private File checkIfNameNumbersNeeded(String name, String extension) {
+		
+		if(extension == "" || extension == null){
+			extension = "";
+		}else{
+			extension = "." + extension;
+		}
+
+		File f = new File(name + extension);
+		
+				
+		
+		if (f.exists()) {
+			int counter = 1;
+			
+			f = new File(name + "(" + counter +")" + extension);
+			
+			while(new File(name + "(" + counter +")" + extension).exists()){
+				counter++;
+				f = new File(name + "(" + counter +")" + extension);
+			}
+			//log.error("File already exists:" + f.getAbsolutePath());
+			//exit(1);
+		}
+		return f;
+	}
+	
+	
+	
+
+//	public void check(String name, String ext) throws TempelPlusException {
+//		if (name.contains("."))
+//			name = name.substring(0, name.lastIndexOf("."));
+//		File f = new File(name + "." + ext);
+//		if (f.exists()) {
+//			if (f.isDirectory()) {
+//				log.error("File already exists:" + f.getAbsolutePath());
+//				exit(1);
+//			} else {
+//				log.error("File already exists:" + f.getAbsolutePath());
+//				exit(1);
+//			}
+//		}
+//	}
+	
+
 	public void check(String name, String ext) throws TempelPlusException {
+		
 		if (name.contains("."))
 			name = name.substring(0, name.lastIndexOf("."));
 		File f = new File(name + "." + ext);
@@ -552,4 +643,171 @@ public abstract class TempelPlus {
 	    }
 	    return envVars;
 	 }
+	 
+	
+	 
+	 
+	 /**Function used during tempelplus actions, which require entering eToken pin
+	  * 
+	  * Pin insertion moment. If there is a tempelplus pin parameter inserted,
+	  * pin from parameter will be used, else pin entering method prescribed in configuration file
+	  * will be used
+	 * @return pin code as String
+	 * @throws Exception
+	 */
+	public String pinInsertion() throws Exception {
+			String pin;
+			log.info("");
+			 if(commandParameterPin != null){
+				 log.info("Using pin that was entered as TempelPlus commandline parameter");
+				 pin = commandParameterPin;
+			 }else{
+				 pin = new PinReader().obtainPin();
+			 }
+			return pin;
+	}
+	
+	
+	/** Copies file
+	 * @param inPut - source file location
+	 * @param outPut - target file location
+	 * @return true if success, false if not
+	 */
+	public boolean copyFile(File inPut, File outPut){
+		try {
+			
+			copying(inPut, outPut);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	/** Moves file (copies the file to target location and deletes the original)
+	 * @param inPut - source file location
+	 * @param outPut - target file location
+	 * @return
+	 */
+	public boolean moveFile(File inPut, File outPut){
+		try {
+			
+			copying(inPut, outPut);
+			System.gc();
+			
+			try {
+				tryDeleting(inPut, 5, "", "");
+			} catch (Exception e) {
+				log.warn("Could not delete: " + inPut.getName());
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	/** Copying process used by copying or moving functions
+	 * @param inPut - source file location
+	 * @param outPut - target file location
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	private void copying(File inPut, File outPut) throws FileNotFoundException, IOException {
+		InputStream in = new FileInputStream(inPut);
+		OutputStream out = new FileOutputStream(outPut);
+		byte[] buf = new byte[1024];
+		int len;
+		while ((len = in.read(buf)) > 0) {
+		   out.write(buf, 0, len);
+		}
+		in.close();
+		out.close();
+	}
+	
+	/** Tries to delete file, specified number of tries
+	 * @param currentFile - file to delete
+	 * @param attempts - number of retries
+	 * @param successMessage - what to print if success
+	 * @param failMessage - what to print if failed
+	 * @return - true if deleted successfully, false is not
+	 */
+	public boolean tryDeleting(File currentFile, int attempts, String successMessage, String failMessage) {
+		int deletionCounter = 1;
+
+		while (currentFile.exists()) {
+			currentFile.delete();
+
+			if (deletionCounter >= attempts) {
+				wait(1);
+				log.fatal(failMessage);
+				return false;
+			}
+
+			deletionCounter++;
+		}
+		log.info(successMessage);
+		return true;
+	}
+	
+	public void wait(int seconds){
+		try {
+			Thread.sleep(seconds*1000);
+			log.info("...");
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+	
+	
+	/** Verifies if this is a digidoc exception
+	 * 
+	 * @param e - exception
+	 * @param ignoreFaults - if true, only error message is displayed, if false exit(1) is also executed
+	 */
+	public void verifyError(Exception e, String messageString, boolean ignoreFaults) {
+		
+		if(messageString != null){
+		log.error(messageString);
+		}
+		
+		if (e.getClass() == DigiDocException.class) {
+			
+			printDdocErrorInformation(e);
+		}else {
+			log.error("Unexpected error (non digidocexception).");
+			log.error("Fault location: " + e.getStackTrace()[0]);
+			log.error("Fault type:" + e.getClass().toString().replace("class", ""));
+			if(e.getMessage() != null){
+				log.error("Fault message: " + e.getMessage());
+			}
+		}
+		
+		if(!ignoreFaults){
+			exit(1);
+		}
+		
+	}
+
+	/** In some cases TempelPlus informs user what had possibly caused a faulty situation
+	 * @param e - Exception (DigiDocException)
+	 */
+	private void printDdocErrorInformation(Exception e) {
+		int exceptionCode = ((DigiDocException) e).getCode();
+		log.error("A Digidoc exception occured! Error code: " + exceptionCode);
+		
+		if (exceptionCode == DigiDocException.ERR_TOKEN_LOGIN) {
+			log.error("Incorrect PIN or etoken ejected!");
+		} else if(exceptionCode == DigiDocException.ERR_CRYPTO_DRIVER || 
+				  exceptionCode == DigiDocException.ERR_PKCS11_INIT || 
+				  exceptionCode == DigiDocException.ERR_SIGN){
+			log.error("Communicating with etoken failed!");
+			exit(1);
+		}else if(exceptionCode == DigiDocException.ERR_OCSP_REQ_CREATE || 
+				  exceptionCode == DigiDocException.ERR_OCSP_REQ_SEND ){
+			log.error("Creating or sending OCSP request failed!");
+		}
+	}
 }

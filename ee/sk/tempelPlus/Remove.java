@@ -83,7 +83,8 @@ public class Remove extends TempelPlus
       }
       catch (Exception e)
       {
-         log.error("Removal of signatures failed!",e);
+         verifyError(e, "Removal of signatures failed!", true);
+    	  //log.error("Removal of signatures failed!",e);
          return true;
       }
       return false;

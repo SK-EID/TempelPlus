@@ -63,7 +63,8 @@ public class Extract extends TempelPlus {
          }
          log.info(workFiles.size() + " documents where handled successfully. " + countFiles + " files extracted");
       } catch (Exception e) {
-         log.error("Extraction of files failed!", e);
+    	 verifyError(e, "Extraction of files failed!", true);
+         //log.error("Extraction of files failed!", e);
          return true;
       }
       return false;

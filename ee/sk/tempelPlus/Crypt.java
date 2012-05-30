@@ -22,6 +22,10 @@ import ee.sk.tempelPlus.util.Util;
 import ee.sk.xmlenc.EncryptedData;
 import ee.sk.xmlenc.EncryptedKey;
 
+/** Encryption functionality
+ * @author Erik Kaju
+ *
+ */
 public class Crypt extends TempelPlus {
 
    public Logger log = Logger.getLogger(Crypt.class);
@@ -48,6 +52,21 @@ public class Crypt extends TempelPlus {
          }
 
          List<File> certs = getFiles(certPaths, new ArrayList<File>());
+         
+         // Check whether certificates are present
+         boolean foundMissingCerts = false;
+			for (String parameterCert : certPaths) {
+				
+				if (!new File(parameterCert).exists()) {
+					log.info("Specified certificate not found: " + parameterCert);
+					foundMissingCerts = true;
+				}
+			}
+		 if(foundMissingCerts){
+			 exit(1);
+		 }
+
+         
          setOutPut(args[1]);
          //Kontrollime failide olemasolu
          for(File file:workFiles){
@@ -61,9 +80,19 @@ public class Crypt extends TempelPlus {
          String recipient =null;
          int r=1;
          for (File cert : certs) {
-            X509Certificate recvCert = SignedDoc.readCertificate(cert);
+            
+        	 X509Certificate recvCert = null;
+            try {
+            	recvCert = SignedDoc.readCertificate(cert);
+				recvCert.checkValidity();
+			} catch (Exception e) {
+				log.info("Specified certificate corrupted or not valid: " + cert.toString());
+				
+				throw new Exception("Encryption of the files failed!");
+			}
 
             boolean keyUsages[] = recvCert.getKeyUsage();
+            
 
             if(keyUsages != null && keyUsages.length > 3 && keyUsages[3] == true)
             {
@@ -73,7 +102,6 @@ public class Crypt extends TempelPlus {
             {
                log.info("The certificate " + cert.getAbsolutePath() +  " used in crypto process was not meant for crypting the data.");
                log.info("Please specify another certificate.");
-               System.exit(1);
             }
 
             EncryptedKey ekey = new EncryptedKey("ID"+r, // optional Id atribute value
@@ -178,10 +206,10 @@ public class Crypt extends TempelPlus {
             //cdoc.addProperty(EncryptedData.ENCPROP_FILENAME, file.getName());
 
             String name = file.getName().substring(0,file.getName().lastIndexOf('.'));
-            cdoc.addProperty(EncryptedData.ENCPROP_FILENAME, name + ".ddoc");
+            //cdoc.addProperty(EncryptedData.ENCPROP_FILENAME, name + ".ddoc");
 
             //cdoc.addProperty(EncryptedData.ENCPROP_ORIG_MIME, m.getContentType(f2));
-            cdoc.addProperty(EncryptedData.ENCPROP_ORIG_MIME, SignedDoc.xmlns_digidoc);
+            cdoc.addProperty(EncryptedData.ENCPROP_ORIG_MIME, SignedDoc.xmlns_digidoc13); // xmlns_digidoc changed to xmlns_digidoc13
 
             StringBuffer sb = new StringBuffer();
             sb.append(file.getName());
@@ -204,7 +232,8 @@ public class Crypt extends TempelPlus {
          }
          log.info(workFiles.size() + " files encrypted successfully!.");
       } catch (Exception e) {
-         log.error("Encryption of the files failed!", e);
+    	 verifyError(e, "Encryption of the files failed!", true);
+         //log.error("Encryption of the files failed!", e);
          return true;
       }
       return false;
@@ -287,7 +316,8 @@ public class Crypt extends TempelPlus {
          }else if(args.length<3)
             fine=false;
       } catch (Exception e) {
-         log.error("Parsing parameters failed", e);
+    	 verifyError(e, "Parsing parameters failed", true);
+         //log.error("Parsing parameters failed", e);
          fine = false;
       }
 

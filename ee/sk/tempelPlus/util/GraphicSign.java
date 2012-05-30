@@ -234,7 +234,7 @@ public class GraphicSign extends JFrame{
             }
             Signature sig = sdoc.prepareSignature(cert, roles, addr);
             byte[] sidigest = sig.calculateSignedInfoDigest();
-            byte[] sigval = sigFac.sign(sidigest, 0, pin);
+            byte[] sigval = sigFac.sign(sidigest, 0, pin, sig);
             sig.setSignatureValue(sigval);
             sig.getConfirmation();
             String fileName = exitFolder + "\\" + file.getName();

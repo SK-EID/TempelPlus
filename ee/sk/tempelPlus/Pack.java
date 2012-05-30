@@ -81,7 +81,8 @@ public class Pack extends TempelPlus {
          }
          log.info(workFiles.size() + " documents created successfully.");
       } catch (Exception e) {
-         log.error("Creation of the files failed!",e);
+    	 verifyError(e, "Creation of the files failed!", true);
+         //log.error("Creation of the files failed!",e);
          return true;
       }
       return false;

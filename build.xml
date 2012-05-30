@@ -4,9 +4,9 @@
 
 
 	<path id="libraries">
-		<fileset dir="lib">
+		<!-- <fileset dir="lib">
 			<include name="*.jar" />
-		</fileset>
+		</fileset> -->
 		<fileset dir="JDigiDoc/lib">
 			<include name="*.jar" />
 		</fileset>
@@ -32,13 +32,21 @@
       <delete dir="${build.dir}"/>
       <mkdir dir="${build.dir}" />
       <mkdir dir="${build.dir}/classes" />
+	  <mkdir dir="${build.dir}/run_jar_manifest" />
+	  
       <javac classpathref="libraries" debug="on"
              deprecation="on" destdir="${build.dir}/classes"
              includes="**/Run.java" optimize="on" encoding="UTF-8">
          <src path="src"/>
       	<compilerarg value="-Xlint:unchecked"/>
       </javac>
-      <jar basedir="${build.dir}/classes" destfile="${build.dir}/Run.jar"/>
+	  
+	  <manifest file="${build.dir}/run_jar_manifest/manifest.mf">
+        <attribute name="Main-Class" value="ee.sk.tempelPlus.Run" />
+      </manifest>
+	  
+      <jar basedir="${build.dir}/classes" destfile="${build.dir}/Run.jar"  manifest="${build.dir}/run_jar_manifest/manifest.mf" />
+
       <copy file="${build.dir}/Run.jar" todir="."/>
    </target>
 </project>

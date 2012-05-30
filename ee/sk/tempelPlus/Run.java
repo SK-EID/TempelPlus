@@ -24,10 +24,11 @@ public class Run {
       File libDir = new File(jDocLoc+File.separator+"lib"+File.separator);
       ArrayList<URL> urls = new ArrayList<URL>();
       urls.add(new File(jDocLoc+File.separator).toURI().toURL());
-      urls.add(new File(jDocLoc+File.separator+"JDigiDoc.jar").toURI().toURL());
-      urls.add(new File(jDocLoc+File.separator+"jdcerts.jar").toURI().toURL());
-      urls.add(new File(jDocLoc+File.separator+"tinyxmlcanonicalizer-0.9.0.jar").toURI().toURL());
+      //urls.add(new File(jDocLoc+File.separator+"JDigiDoc.jar").toURI().toURL());
+      urls.add(new File(jDocLoc+File.separator+"jdigidoc-3.6.0.157.jar").toURI().toURL());
+      //urls.add(new File(jDocLoc+File.separator+"tinyxmlcanonicalizer-0.9.0.jar").toURI().toURL());
       urls.add(new File("TempelPlus.jar").toURI().toURL());
+      urls.add(new File(jDocLoc+File.separator+"jdcerts.jar").toURI().toURL());
       String bcProv = Config.getProp(Config.BC_PROV);
       if(libDir.isDirectory()){
          for(String file:libDir.list()){
@@ -45,7 +46,7 @@ public class Run {
 //      }
 
       ClassLoader cl = new URLClassLoader(urls.toArray(new URL[urls.size()]));
-      Class c;
+      Class<?> c;
       if(args.length>=1&&args[0].equals("-g")){
          c = Class.forName("ee.sk.tempelPlus.util.GraphicSign", false, cl);
       }else{
@@ -105,7 +106,7 @@ public class Run {
          Config.init(configFile);
       } catch (IOException e) {
          System.out.println("Reading configuration failed:");
-         e.printStackTrace();
+         e.getMessage();
          return true;
       }
       return false;

@@ -1,12 +1,12 @@
 package ee.sk.tempelPlus;
 
 import java.io.File;
+
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.activation.MimetypesFileTypeMap;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -20,9 +20,12 @@ import ee.sk.digidoc.factory.DigiDocFactory;
 import ee.sk.digidoc.factory.PKCS11SignatureFactory;
 import ee.sk.digidoc.factory.SignatureFactory;
 import ee.sk.tempelPlus.util.Config;
-import ee.sk.tempelPlus.util.PinReader;
 import ee.sk.tempelPlus.util.Util;
 import ee.sk.utils.ConfigManager;
+
+/** Signing functionality
+ * @author Erik Kaju
+ */
 
 public class Sign extends TempelPlus {
 
@@ -34,9 +37,14 @@ public class Sign extends TempelPlus {
    private static final String POSTCODE = "-postcode";
 
    public Logger log = Logger.getLogger(Sign.class);
-
-   public boolean run(String[] args) throws DigiDocException {
+   boolean doNotAskPinAgain = false;
+   
+   public boolean run(String[] args) {
       parseParams(args);
+      
+      File currentFile = null;
+      String outPutFileName = null;
+      
       try
       {
          if (args.length > 1 && (args[1].trim().equalsIgnoreCase("-?") || args[1].trim().equalsIgnoreCase("-help")))
@@ -58,9 +66,10 @@ public class Sign extends TempelPlus {
          }
          setOutPut(args[1]);
          // Kontrollime failide olemasolu
-         for (File file : workFiles) {
-            check(outputFolder + File.separator + file.getName(), Config.getProps().getProperty(Config.FORMAT));
-         }
+//         for (File file : workFiles) {
+//            //check(outputFolder + File.separator + file.getName(), Config.getProps().getProperty(Config.FORMAT));
+//         }
+         
          String signer_cn = "";
          signer_cn = Config.getProp(Config.SIGNCN);
 
@@ -117,8 +126,17 @@ public class Sign extends TempelPlus {
 //         }
          //System.out.println(signer_token);
          MimetypesFileTypeMap m = new MimetypesFileTypeMap();
+         
+         
+			// PIN ENTERING MOMENT
+			if (!doNotAskPinAgain) {
 
-         String pin = new PinReader().askPin();
+				pin = pinInsertion();
+			}
+
+			if (follow) {
+				doNotAskPinAgain = true;
+			}
 
 //         X509Certificate cert = null;
 //         try {
@@ -151,105 +169,177 @@ public class Sign extends TempelPlus {
 //         int i = 1;
 //         DigiDocFactory digFac = null;
 //         SignedDoc sdoc;
-
+//		if(1 ==1){
+//			throw new InterruptedException();
+//		}
          while (true)
          {
-            int i = 1;
-            for (File file : workFiles)
-            {
-               X509Certificate cert = null;
-               try {
-                  // Muudame leveli taset et keerata logi kinni kui vale PIN on
-                  Logger localLogger = Logger.getLogger(DigiDocException.class);
-                  Level curr = localLogger.getLevel();
-                  localLogger.setLevel(Level.ALL);
-                  cert = sigFac.getCertificate((int)signer_token, pin);
-                  cert.checkValidity();
+        	
+				int i = 1;
+				for (File file : workFiles)
+				{
+				   X509Certificate cert = null;
+				   currentFile = file;
+					try {
 
-                  localLogger.setLevel(curr);
-               } catch (DigiDocException e) {
-                  if (e.getCode() == DigiDocException.ERR_TOKEN_LOGIN) {
-                     log.error("Incorrect PIN!");
-                     exit(1);
-                  } else {
-                     log.error(e.getMessage(), e);
-                     exit(1);
-                  }
+						// Muudame leveli taset et keerata logi kinni kui vale
+						// PIN on
+						Logger localLogger = Logger.getLogger(DigiDocException.class);
+						Level curr = localLogger.getLevel();
+						localLogger.setLevel(Level.ALL);
+						cert = sigFac.getCertificate((int) signer_token, pin);
+						cert.checkValidity();
 
-               }
-               Util.checkCertificate(cert);// Kontrollime sertifikaati
-               Util.initOSCPSerial(cert);
-               SignatureProductionPlace addr = new SignatureProductionPlace(Config.getProps().getProperty(Config.CITY),
-                     Config.getProps().getProperty(Config.STATE), Config.getProps().getProperty(Config.COUNTRY), Config
-                           .getProps().getProperty(Config.POSTCODE));
-               String[] roles = null;
-               if (Config.getProps().getProperty(Config.ROLE) != null) {
-                  roles = new String[] { Config.getProps().getProperty(Config.ROLE) };
-               }
-               DigiDocFactory digFac = null;
-               SignedDoc sdoc;
+						localLogger.setLevel(curr);
+
+					} catch (Exception e) {
+						
+						verifyError(e, "Verifying etoken pin", false);
+
+					}
+					
+					if(firstRun){
+				   log.info("Pin OK!");
+					}
+					firstRun = false;
+				   Util.checkCertificate(cert);// Kontrollime sertifikaati
+				   Util.initOSCPSerial(cert);
+				   SignatureProductionPlace addr = new SignatureProductionPlace(Config.getProps().getProperty(Config.CITY),
+				         Config.getProps().getProperty(Config.STATE), Config.getProps().getProperty(Config.COUNTRY), Config
+				               .getProps().getProperty(Config.POSTCODE));
+				   String[] roles = null;
+				   if (Config.getProps().getProperty(Config.ROLE) != null) {
+				      roles = new String[] { Config.getProps().getProperty(Config.ROLE) };
+				   }
+				   DigiDocFactory digFac = null;
+				   SignedDoc sdoc;
 
 
-               log.info("Signing file " + i + " of " + workFiles.size() + ". Currently signing '" + file.getName()
-                     + "'");
-               if (!isDigiDoc(file)) {
-                  sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
-                  log.info("File is not ddoc, converting..");
-                  String mimeType = m.getContentType(file);
-                  sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
-               } else {
-                  if (digFac == null)
-                     digFac = ConfigManager.instance().getDigiDocFactory();
-                  sdoc = digFac.readSignedDoc(file.getAbsolutePath());
-               }
-               Signature sig = sdoc.prepareSignature(cert, roles, addr);
-               byte[] sidigest = sig.calculateSignedInfoDigest();
-               byte[] sigval = null;
-               try {
-                  sigval = sigFac.sign(sidigest, 0, pin);
-               } catch (DigiDocException e) {
-                  if (e.getNestedException() != null && e.getNestedException().getMessage() != null
-                        && e.getNestedException().getMessage().trim().equals("CKR_USER_NOT_LOGGED_IN")) {
-                     log.warn("Not logged in message recieved, trying to restore sigfactory!");
-                     if (sigFac instanceof PKCS11SignatureFactory) {
-                        ((PKCS11SignatureFactory) sigFac).reset();
-                        sigval = sigFac.sign(sidigest, 0, pin);
-                     } else {
-                        sigFac.reset();
-                        sigval = sigFac.sign(sidigest, 0, pin);
-                     }
-                  } else {
-                     log.error("Signing failed!", e);
-                     return true;
-                  }
-               }
-               sig.setSignatureValue(sigval);
-               sig.getConfirmation();
-               String fileName = outputFolder + File.separator + file.getName();
-               if (!isDigiDoc(file))
-                  fileName = makeName(fileName, Config.getProps().getProperty(Config.FORMAT));
-               sdoc.writeToFile(new File(fileName));
-               log.info("cleaning cache");
-               //sdoc.cleanupDfCache();
-               if (follow || remInput) {
-                  log.info("trying to delete file:" + file.getName());
-                  file.delete();
-               }
-               i++;
-               log.info("Done");
-            }
-            if (follow) {
-               Thread.sleep(1000);
-               workFiles = getFiles(args[1], new ArrayList<File>());
-               i = 1;
-            } else {
-               break;
-            }
+				   log.info("Signing file " + i + " of " + workFiles.size() + ". Currently signing '" + file.getName()
+				         + "'");
+				   if (!isDigiDoc(file)) {
+				      sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
+				      log.info("File is not ddoc, converting..");
+				      String mimeType = m.getContentType(file);
+				      sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
+				   } else {
+				      if (digFac == null)
+				         digFac = ConfigManager.instance().getDigiDocFactory();
+				      sdoc = digFac.readSignedDoc(file.getAbsolutePath());
+				   }
+				   Signature sig = sdoc.prepareSignature(cert, roles, addr);
+				   byte[] sidigest = sig.calculateSignedInfoDigest();
+				   byte[] sigval = null;
+				   try {
+				      sigval = sigFac.sign(sidigest, 0, pin, sig);
+				   } catch (DigiDocException e) {
+				      if (e.getNestedException() != null && e.getNestedException().getMessage() != null
+				            && e.getNestedException().getMessage().trim().equals("CKR_USER_NOT_LOGGED_IN")) {
+				         log.warn("Not logged in message recieved, trying to restore sigfactory!");
+				         if (sigFac instanceof PKCS11SignatureFactory) {
+				            ((PKCS11SignatureFactory) sigFac).reset();
+				            sigval = sigFac.sign(sidigest, 0, pin, sig);
+				         } else {
+				            sigFac.reset();
+				            sigval = sigFac.sign(sidigest, 0, pin, sig);
+				         }
+				      } else {
+				    	 verifyError(e, "Signing failed!", false);
+				      }
+				   }
+				   sig.setSignatureValue(sigval);
+				   sig.setHttpFrom("TempelPlus version: " + version);
+				   sig.getConfirmation();
+				   outPutFileName = outputFolder + File.separator + file.getName();
+				   
+				   if(usingOutPutFolder || (!usingOutPutFolder && !isDigiDoc(file))){
+					   outPutFileName = makeName(outPutFileName, Config.getProps().getProperty(Config.FORMAT));
+					   log.info("Creating new container: " + outPutFileName);
+				   }else{
+					   log.info("Adding signature to container: " + outPutFileName);
+				   }
+				   
+				   sdoc.writeToFile(new File(outPutFileName));
+				   log.info("cleaning cache");
+				   //sdoc.cleanupDfCache();
+				   if (follow || remInput) {
+				      log.info("trying to delete file:" + file.getName());
+				      file.delete();
+				   }
+				   i++;
+				   log.info("Done");
+				}
+				if (follow) {
+				   Thread.sleep(1000);
+				   workFiles = getFiles(args[1], new ArrayList<File>());
+				   i = 1;
+				} else {
+				   break;
+				}
          }
          log.info(workFiles.size() + " documents signed successfully");
       } catch (Exception e) {
-         log.error("Signing failed!", e);
-         return true;
+    	  
+    	  verifyError(e, "Signing failed!", follow);
+    	  
+			if(currentFile == null){
+				log.fatal("TempelPlus crashed before signing process had started");
+				exit(1);
+			}
+
+			if (follow) {
+				//e.printStackTrace();
+				log.info("Working in follow mode"); //, signing current file FAILED: \"" + currentFile.getName() + "\"");
+
+				
+				String errorFolderPath;
+
+				    errorFolderPath = outputFolder.getAbsolutePath() + File.separator + "error";
+					boolean createdErrorFolder = false;
+					if (new File(errorFolderPath).exists()) {
+						// log.info("Error folder already exists.");
+						createdErrorFolder = true;
+					} else {
+						log.info("Creating an error folder into specified output directory");
+
+						int creationCounter = 1;
+
+						while (createdErrorFolder == false) {
+
+							createdErrorFolder = (new File(errorFolderPath)).mkdirs();
+							if (creationCounter >= 5) {
+								wait(1);
+								log.fatal("FATAL error. Couldn't create an error directory after 5 attempts.");
+								return true;
+							}
+							creationCounter++;
+						}
+					}
+				
+				log.info("Trying to move a problematic file into error directory.");
+				
+				if(currentFile.exists()){
+					
+					File errorFile = new File( makeName(errorFolderPath + File.separator + currentFile.getName()) );
+					moveFile(currentFile, new File(errorFolderPath + File.separator + errorFile.getName()));
+					System.gc();
+					
+				}else{			
+					log.fatal("File: " + currentFile.getName() + " got missing from input directory during signing process!");
+					
+					if(outPutFileName != null && new File(outPutFileName).exists()){
+						moveFile(new File(outPutFileName), new File(makeName(errorFolderPath + File.separator + new File(outPutFileName).getName())));
+					}
+				}
+				log.info("Restarting signing process.");
+				log.info("");
+				this.run(args);
+
+			} else {
+
+				return true;
+			}
+
       }
       return false;
    }
@@ -290,12 +380,22 @@ public class Sign extends TempelPlus {
          {// lisaargumendid
             for (int i = 2; i < args.length; i++)
             {
-               if (args[i].equalsIgnoreCase(OUTPUT_F))
+            	
+            	// Entering pin via command parameter
+            	if (args[i].equalsIgnoreCase(PARAMPIN))
+                {
+                   if (i + 1 < args.length)
+                   {
+                	   commandParameterPin = args[i+1];
+                	   i++;
+                   }
+                }
+            	else if (args[i].equalsIgnoreCase(OUTPUT_F))
                {
                   if (i + 1 < args.length)
                   {
                      //outputFolder = new File(args[i + 1]);
-
+                	 usingOutPutFolder = true;
                      ArgsParams params = ConcatParams(args, i + 1);
                      outputFolder = new File(params.Params);
                      i = params.i - 1;
@@ -415,6 +515,8 @@ public class Sign extends TempelPlus {
                   fine = false;
                }
             }
+            
+            
             if (follow)
             {
                if (outputFolder == null && remInput)
@@ -431,8 +533,9 @@ public class Sign extends TempelPlus {
             }
          }
       } catch (Exception e) {
-         log.error("Parsing parameters failed", e);
-         fine = false;
+         //log.error("Parsing parameters failed! Message: " + e.getMessage());
+         verifyError(e, "Parsing parameters failed!", true);
+    	 fine = false;
       }
       if (!fine) {
          printHelp();
@@ -446,6 +549,7 @@ public class Sign extends TempelPlus {
       log.info("usage:");
       log.info("TempelPlus sign <folder or file> <additional params>");
       log.info("Additional (optional) params:");
+      log.info("-pin <code>        			  etoken pin code");
       log.info("-output_folder <folder>       folder where files are written");
       log.info("-remove_input                 deletes files that are used");
       log.info("-follow                       program does not exit and watches input folder");

@@ -102,7 +102,8 @@ public class Verify extends TempelPlus{
        log.info(workFiles.size()+" documents verified successfully");
        log.info("TempelPlus found "+validSignatures+" valid signatures and "+unValidSignatures+" invalid signatures");
       }catch (Exception e){
-         log.error("Verification failed!",e);
+    	 verifyError(e, "Verification failed!", true);
+         
          return true;
       }
       return false;

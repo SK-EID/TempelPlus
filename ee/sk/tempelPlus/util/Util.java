@@ -29,27 +29,34 @@ public class Util {
    public static Logger log = Logger.getLogger(Util.class);
 
    public static void checkCertificate(X509Certificate certk) {
-      try {
-         X509CertImpl cert = (X509CertImpl) certk;
-         CertificatePoliciesExtension c = (CertificatePoliciesExtension) cert.getExtension(new ObjectIdentifier(
-               "2.5.29.32"));
-         Object o = c.get("policies");
-         if (o instanceof ArrayList) {
-            ArrayList a = (ArrayList) o;
-            for (Object x : a) {
-               if (x instanceof PolicyInformation) {
-                  PolicyInformation p = (PolicyInformation) x;
-                  if (p.getPolicyIdentifier().getIdentifier().toString().startsWith("1.3.6.1.4.1.10015.7"))
-                     return;
-               }
-            }
-         }
-         log.error("Operation is allowed only with Corporate certificates (DigiTempel)");
-         TempelPlus.exit(1);
-      } catch (Exception e) {
-         log.error("Error checking policy!", e);
-      }
-   }
+	      try {
+	         X509CertImpl cert = (X509CertImpl) certk;
+	         CertificatePoliciesExtension c = (CertificatePoliciesExtension) cert.getExtension(new ObjectIdentifier(
+	               "2.5.29.32"));
+	         Object o = c.get("policies");
+	         if (o instanceof ArrayList) {
+	            ArrayList a = (ArrayList) o;
+	            for (Object x : a) {
+	               if (x instanceof PolicyInformation) {
+	                  PolicyInformation p = (PolicyInformation) x;
+	                  //Fix @ 10.04.2012 - Test Corporate certificates are allowed too.(Identifier starting with "1.3.6.1.4.1.10015.3.7") 
+	                  if (p.getPolicyIdentifier().getIdentifier().toString().startsWith("1.3.6.1.4.1.10015.7")){
+	                	  log.info("Executing operation with Corporate certificate");
+	                	  return;  
+	                  }else if (p.getPolicyIdentifier().getIdentifier().toString().startsWith("1.3.6.1.4.1.10015.3.7")){
+	                	  log.info("Executing operation with TEST Corporate certificate");
+	                	  return;
+	                  }
+	               }
+	            }
+	         }
+	         log.error("Operation is allowed only with Corporate certificates (DigiTempel)");
+	         TempelPlus.exit(1);
+	      } catch (Exception e) {
+	         log.error("Error checking policy!", e);
+	      }
+	   }
+
 
    public static void initOSCPSerial(X509Certificate cert5) throws NoSuchAlgorithmException, CertificateException,
          IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, KeyStoreException,
@@ -89,14 +96,14 @@ public class Util {
    }
 
    /**
-    *Ligipääs SK OCSP teenusele on vaid IP-põhise ligipääsu alusel või
-    * asutusele väljastatud ligipääsutõendiga, ligipääsu ei ole personaalse
-    * juurdepääsutõendiga. Selleks peab käivitamisel kontrollima
-    * juuredepääsutõendi tüüpi! Isikliku juurdepääsutõendi tunneb ära selle
-    * järgi, et selles on sertifikaadi Subjecti (DN-i) väli SERIALNUMBER
-    * pikkusega 11 numbrit. Kui väli ei ole 11 numbrit võib eeldada et tegu on
-    * asutusele väljastatud juurdepääsutõendiga (Urmo: kommentaar – jõle loll
-    * tuvastus, no aga praegu ma midagi paremat välja ei mõelnud )
+    *LigipÃ¤Ã¤s SK OCSP teenusele on vaid IP-pÃµhise ligipÃ¤Ã¤su alusel vÃµi
+    * asutusele vÃ¤ljastatud ligipÃ¤Ã¤sutÃµendiga, ligipÃ¤Ã¤su ei ole personaalse
+    * juurdepÃ¤Ã¤sutÃµendiga. Selleks peab kÃ¤ivitamisel kontrollima
+    * juuredepÃ¤Ã¤sutÃµendi tÃ¼Ã¼pi! Isikliku juurdepÃ¤Ã¤sutÃµendi tunneb Ã¤ra selle
+    * jÃ¤rgi, et selles on sertifikaadi Subjecti (DN-i) vÃ¤li SERIALNUMBER
+    * pikkusega 11 numbrit. Kui vÃ¤li ei ole 11 numbrit vÃµib eeldada et tegu on
+    * asutusele vÃ¤ljastatud juurdepÃ¤Ã¤sutÃµendiga (Urmo: kommentaar â€“ jÃµle loll
+    * tuvastus, no aga praegu ma midagi paremat vÃ¤lja ei mÃµelnud ï�Š)
     *
     * @param cert5
     */

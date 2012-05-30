@@ -18,17 +18,20 @@ import ee.sk.digidoc.TokenKeyInfo;
 import ee.sk.digidoc.factory.DigiDocFactory;
 import ee.sk.digidoc.factory.SignatureFactory;
 import ee.sk.tempelPlus.util.Config;
-import ee.sk.tempelPlus.util.PinReader;
 import ee.sk.utils.ConfigManager;
 import ee.sk.xmlenc.EncryptedData;
 import ee.sk.xmlenc.factory.EncryptedDataParser;
 import ee.sk.xmlenc.factory.EncryptedStreamParser;
 
+/** Decryption functionality
+ * @author Erik Kaju
+ *
+ */
 public class Decrypt extends TempelPlus {
 
    public Logger log = Logger.getLogger(Decrypt.class);
 
-   private String recipient;
+   private String recipient, decryptionTargetFolder;
 
    private static String RECIPIENT="-recipient";
 
@@ -40,25 +43,43 @@ public class Decrypt extends TempelPlus {
             printHelp();
             exit(0);
          }
+         
          parseParams(args);
+         
          List<File> workFiles = getFilesWithExt(args[1], new ArrayList<File>(), "cdoc");
          if (workFiles.size() == 0) {
+        	log.error("Encrypted file type should be \"cdoc\" ");
+        	log.info("");
             printHelp();
             System.exit(1);
          }
          setOutPut(args[1]);
          //Kontrollime failide olemasolu
          EncryptedDataParser dencFac =  ConfigManager.instance().getEncryptedDataParser();
-         for(File file:workFiles){
-            EncryptedData m_cdoc = dencFac.readEncryptedData(file.getAbsolutePath());
-            File folder = new File(outputFolder+File.separator+m_cdoc.findPropertyByName(EncryptedData.ENCPROP_FILENAME).getContent());
-            if(folder.exists()){
-               log.error("File already exists:"+folder.getAbsolutePath());
-               exit(1);
-            }
+         
+         String[] decryptionTargetDirectories = new String[workFiles.size()];
+         //for(File file:workFiles){
+         for(int i = 0; i < workFiles.size(); i++){
+        	File file = workFiles.get(i);
+        	
+         	//EncryptedData m_cdoc = dencFac.readEncryptedData(file.getAbsolutePath());
+            
+            //File folder = new File(outputFolder+File.separator+m_cdoc.findPropertyByName(EncryptedData.ENCPROP_FILENAME).getContent());
+         	
+            decryptionTargetDirectories[i] = makeName(outputFolder + File.separator + file.getName().replace("." + Config.getProps().getProperty(Config.CRYPT), ""), "");
+            
+            
+            
+//            File folder = new File(decryptionTargetDirectories[i]);
+//            
+//            if(folder.exists() && folder.isDirectory()){
+//               log.error("Folder already exists:"+folder.getAbsolutePath());
+//               exit(1);
+//            }
          }
+         
          askQuestion("Are you sure you want to decrypt " + workFiles.size() + " files, encrypted to cdoc? Y\\N");
-         String pin = new PinReader().askPin();
+         pin = pinInsertion();
          int i = 1;
          int count = 0;
          SignatureFactory sigFac = ConfigManager.instance().getSignatureFactory();
@@ -101,7 +122,10 @@ public class Decrypt extends TempelPlus {
          }
 
          while (true) {
-            for (File file : workFiles) {
+            //for (File file : workFiles) {
+        	for(int forC = 0; forC < workFiles.size(); forC++){
+               File file = workFiles.get(forC);
+               
                log.info("Decrypting file " + i + " of " + workFiles.size() + ". Currently processing '" + file.getName() + "'");
                FileInputStream fis = new FileInputStream(file);
                File f2 = File.createTempFile(file.getName().substring(0,file.getName().lastIndexOf('.'))+"___", Config.getProps().getProperty(Config.FORMAT));
@@ -155,16 +179,18 @@ public class Decrypt extends TempelPlus {
 
                //tekitame kaustanime
                EncryptedData m_cdoc = dencFac.readEncryptedData(file.getAbsolutePath());
-               File folder = new File(outputFolder+File.separator+m_cdoc.findPropertyByName(EncryptedData.ENCPROP_FILENAME).getContent());
+               //File folder = new File(outputFolder+File.separator+m_cdoc.findPropertyByName(EncryptedData.ENCPROP_FILENAME).getContent());
+               File folder = new File(decryptionTargetDirectories[forC]);
                if(!folder.mkdir()){
                   log.error("Creation of directory '"+folder.getAbsolutePath()+"' failed!");
                   exit(1);
                }
                //pakime lahti seesolnud ddoc'i
                SignedDoc sdoc = digFac.readSignedDoc(f2.getAbsolutePath());
+               File dataf = null;
                for (int j = 0; j < sdoc.countDataFiles(); j++) {
                   DataFile f = sdoc.getDataFile(j);
-                  File dataf = new File(makeName(folder.getAbsolutePath()+ File.separator + f.getFileName(), f.getFileName().substring(
+                  dataf = new File(makeName(folder.getAbsolutePath()+ File.separator + f.getFileName(), f.getFileName().substring(
                         f.getFileName().lastIndexOf(".") + 1)));
                   new FileOutputStream(dataf).write(f.getBodyAsData());
                   //f.cleanupDfCache();//laseme temp failid maha
@@ -172,7 +198,7 @@ public class Decrypt extends TempelPlus {
                }
                i++;
                f2.delete();
-               log.info("Done");
+               log.info("Done: " + dataf.getAbsolutePath());
                if (follow || remInput) {
                   log.info("trying to delete file:" + file.getName());
                   file.delete();
@@ -188,7 +214,8 @@ public class Decrypt extends TempelPlus {
          }
          log.info(workFiles.size() + " files decrypted successfully! " + count + " files created.");
       } catch (Exception e) {
-         log.error("Decryption of the files failed!", e);
+         //log.error("Decryption of the files failed!", e);
+         verifyError(e, "Decryption of the files failed!", false);
          return true;
       }
       return false;
@@ -200,7 +227,17 @@ public class Decrypt extends TempelPlus {
          fine = true;
          if (args.length > 2) {// lisaargumendid
             for (int i = 2; i < args.length; i++) {
-               if (args[i].equalsIgnoreCase(OUTPUT_F))
+               
+            	// Entering pin via command parameter
+            	if (args[i].equalsIgnoreCase(PARAMPIN))
+                {
+                   if (i + 1 < args.length)
+                   {
+                	   commandParameterPin = args[i+1];
+                	   i++;
+                   }
+                }
+            	else if (args[i].equalsIgnoreCase(OUTPUT_F))
                {
 //                  if (i + 1 < args.length)
 //                  {
@@ -267,8 +304,9 @@ public class Decrypt extends TempelPlus {
             }
          }
       } catch (Exception e) {
-         log.error("Parsing parameters failed", e);
-         fine = false;
+         //log.error("Parsing parameters failed", e);
+         verifyError(e, "Parsing parameters failed", true);
+    	 fine = false;
       }
       if (!fine) {
          printHelp();
@@ -283,6 +321,7 @@ public class Decrypt extends TempelPlus {
       log.info("-recipient <CN>               Common name of encryption recipient's certificate");
       log.info("");
       log.info("Additional (optional) params:");
+      log.info("-pin <code>        			  etoken pin code");
       log.info("-output_folder <folder>       folder where files are written");
       log.info("-remove_input                 deletes files that are used");
       log.info("-follow                       program does not exit and watches input folder");
