@@ -7,7 +7,7 @@
 		<!-- <fileset dir="lib">
 			<include name="*.jar" />
 		</fileset> -->
-		<fileset dir="TempelPlusInstallatsioon/JDigiDoc/lib">
+		<fileset dir="JDigiDoc/lib">
 			<include name="*.jar" />
 		</fileset>
 	   <fileset dir="JDigiDoc">
