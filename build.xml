@@ -1,12 +1,13 @@
 <project basedir="." default="" name="TempelPlus build">
 
 	<property name="build.dir" location="build" />
+	<property name="src" location="src"/>
 
 
 	<path id="libraries">
-		<!-- <fileset dir="lib">
+		<fileset dir="lib">
 			<include name="*.jar" />
-		</fileset> -->
+		</fileset>
 		<fileset dir="JDigiDoc/lib">
 			<include name="*.jar" />
 		</fileset>
@@ -14,32 +15,29 @@
 	         <include name="*.jar" />
 	   </fileset>
 	</path>
+	
+	<target name="clean" description="Clean up" >
+		<delete dir="./bin"/>
+		<delete dir="${build.dir}"/>
+		<delete dir="./Run.jar"/>
+		<delete dir="./TempelPlus.jar"/>
+	</target>
 
-	<target name="compile" depends="run">
+	<target name="compile" depends="">
 		<mkdir dir="${build.dir}" />
 		<mkdir dir="${build.dir}/classes" />
-		<javac classpathref="libraries" debug="on"
-             deprecation="on" destdir="${build.dir}/classes"
-             includes="**/*.java" optimize="on" encoding="UTF-8">
-			<compilerarg value="-Xlint:unchecked"/>
-			<src path="src"/>
+		<javac classpathref="libraries" debug="on" deprecation="on" destdir="${build.dir}/classes" optimize="on" encoding="UTF-8"
+			includeantruntime="true" srcdir="src" includes="ee/sk/tempelPlus/**" excludes="ee/sk/automatedtests/**" >
 		</javac>
-		<jar basedir="${build.dir}/classes" destfile="${build.dir}/TempelPlus.jar"/>
+		<jar basedir="${build.dir}/classes" destfile="${build.dir}/TempelPlus.jar" />
 		<copy file="${build.dir}/TempelPlus.jar" todir="."/>
 	</target>
 	
-  <target name="run" depends="">
+  <target name="run" depends="compile">
       <delete dir="${build.dir}"/>
       <mkdir dir="${build.dir}" />
       <mkdir dir="${build.dir}/classes" />
 	  <mkdir dir="${build.dir}/run_jar_manifest" />
-	  
-      <javac classpathref="libraries" debug="on"
-             deprecation="on" destdir="${build.dir}/classes"
-             includes="**/Run.java" optimize="on" encoding="UTF-8">
-         <src path="src"/>
-      	<compilerarg value="-Xlint:unchecked"/>
-      </javac>
 	  
 	  <manifest file="${build.dir}/run_jar_manifest/manifest.mf">
         <attribute name="Main-Class" value="ee.sk.tempelPlus.Run" />
