@@ -1,13 +1,8 @@
 <project basedir="." default="" name="TempelPlus build">
 
 	<property name="build.dir" location="build" />
-	<property name="src" location="src"/>
-
 
 	<path id="libraries">
-		<fileset dir="lib">
-			<include name="*.jar" />
-		</fileset>
 		<fileset dir="JDigiDoc/lib">
 			<include name="*.jar" />
 		</fileset>
@@ -19,25 +14,36 @@
 	<target name="clean" description="Clean up" >
 		<delete dir="./bin"/>
 		<delete dir="${build.dir}"/>
-		<delete dir="./Run.jar"/>
-		<delete dir="./TempelPlus.jar"/>
+		<delete file="Run.jar"/>
+		<delete file="TempelPlus.jar"/>
+		<delete dir="${reports}"/>
+		<delete dir="${run.build.dir}"/>
+		<delete dir="${test.build.dir}"/>
 	</target>
 
-	<target name="compile" depends="">
+	<target name="compile" depends="run">
 		<mkdir dir="${build.dir}" />
 		<mkdir dir="${build.dir}/classes" />
-		<javac classpathref="libraries" debug="on" deprecation="on" destdir="${build.dir}/classes" optimize="on" encoding="UTF-8"
-			includeantruntime="true" srcdir="src" includes="ee/sk/tempelPlus/**" excludes="ee/sk/automatedtests/**" >
+		<javac classpathref="libraries" debug="on" deprecation="on" destdir="${build.dir}/classes" includes="**/*.java" optimize="on" encoding="UTF-8"
+			includeantruntime="false">
+			<compilerarg value="-Xlint:unchecked"/>
+			<src path="src"/>
 		</javac>
-		<jar basedir="${build.dir}/classes" destfile="${build.dir}/TempelPlus.jar" />
+		<jar basedir="${build.dir}/classes" destfile="${build.dir}/TempelPlus.jar"/>
 		<copy file="${build.dir}/TempelPlus.jar" todir="."/>
 	</target>
 	
-  <target name="run" depends="compile">
+  <target name="run" depends="">
       <delete dir="${build.dir}"/>
       <mkdir dir="${build.dir}" />
       <mkdir dir="${build.dir}/classes" />
 	  <mkdir dir="${build.dir}/run_jar_manifest" />
+	  
+      <javac classpathref="libraries" debug="on" deprecation="on" destdir="${build.dir}/classes" includes="**/Run.java" optimize="on" encoding="UTF-8"
+      	includeantruntime="false">
+         <src path="src"/>
+      	<compilerarg value="-Xlint:unchecked"/>
+      </javac>
 	  
 	  <manifest file="${build.dir}/run_jar_manifest/manifest.mf">
         <attribute name="Main-Class" value="ee.sk.tempelPlus.Run" />
