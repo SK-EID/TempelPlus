@@ -33,7 +33,7 @@ public class TempelPlusWrapperTest {
 	
 	@Before
 	public void before(){
-		System.out.println();
+		System.out.println("Starting test suite");
 		Log.write("Starting..", "New test");
 		System.gc();
 		System.out.println("Java free memory: " + Runtime.getRuntime().freeMemory());
@@ -681,7 +681,7 @@ public class TempelPlusWrapperTest {
 	 * 
 	 * Return true if checksums match.
 	 */
-	@Test
+	/*@Test
 	public final void testTP27_29() throws Exception {
 		String folder = testDataPath + "TP-27_29" + slash;
 		String outputFolder = folder + "output_folder" + slash;
@@ -715,7 +715,7 @@ public class TempelPlusWrapperTest {
 		
 		tempelPlusWrapper.cleanFolder(folder, new String[]{".cdoc"});
 		tempelPlusWrapper.deleteFile(outputFolder);
-	}
+	}*/
 
 
 	/*
@@ -816,7 +816,7 @@ public class TempelPlusWrapperTest {
 	 * 
 	 * Return true if checksums match and containers are valid.
 	 */
-	@Test
+	/*@Test
 	public final void testTP39() throws Exception {
 		String listeningFolder = testDataPath + "TP-39" + slash;
 		String addedFilesFolder = testDataPath + "TP-39_2" + slash;
@@ -881,7 +881,7 @@ public class TempelPlusWrapperTest {
 		tempelPlusWrapper.deleteFile(outputFolder);
 		new File(outputFolder).mkdir();
 		
-	}
+	}*/
 	
 	/*
 	 * TP-37: Encrypt file via TempelPlus with a broken certificate

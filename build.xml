@@ -1,6 +1,10 @@
 <project basedir="." default="" name="TempelPlus build">
 
 	<property name="build.dir" location="build" />
+	<property name="test.build" location="test.build" />
+	<property name="test.src" location="src\ee\sk\automatedtests" />
+	<property name="reports" location="reports"/>
+	<property name="src" location="src"/>
 
 	<path id="libraries">
 		<fileset dir="JDigiDoc/lib">
@@ -36,7 +40,7 @@
 		<copy file="${build.dir}/TempelPlus.jar" todir="."/>
 	</target>
 	
-  <target name="run" depends="">
+  <target name="run" depends="" description="Compile Run.jar">
       <delete dir="${build.dir}"/>
       <mkdir dir="${build.dir}" />
       <mkdir dir="${build.dir}/classes" />
@@ -56,4 +60,40 @@
 
       <copy file="${build.dir}/Run.jar" todir="."/>
    </target>
+	
+	<target name="run-tests" depends="compile" description="Running TempelPlus test suite" >
+		<mkdir dir="reports"/>
+		<mkdir dir="reports/raw"/>
+		<junit printsummary="yes" haltonfailure="no" showoutput="yes" >
+			<classpath>
+				<pathelement path="${build.dir}/classes"/>
+				<fileset dir="lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="JDigiDoc/lib">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="JDigiDoc">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>			
+		
+ 		  <batchtest fork="yes" todir="${reports}/raw/">
+		  	<formatter type="xml"/>
+		    <fileset dir="${src}">
+		      <include name="**/*Test.java"/>
+		    </fileset>
+		  </batchtest>
+		</junit>	
+	</target>
+	
+<!--	<target name ="test" depends="run-tests" description="Generating HTML report"> -->
+	<target name ="test" description="Generating HTML report">
+		<junitreport todir="${reports}">
+			<fileset dir="${reports}/raw/">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${reports}\html\"/>
+		</junitreport>
+	</target>
 </project>
