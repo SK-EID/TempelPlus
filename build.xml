@@ -9,6 +9,9 @@
 	   <fileset dir="JDigiDoc">
 	         <include name="*.jar" />
 	   </fileset>
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
 	</path>
 	
 	<target name="clean" description="Clean up" >
@@ -21,7 +24,7 @@
 		<delete dir="${test.build.dir}"/>
 	</target>
 
-	<target name="compile" depends="run">
+	<target name="compile" depends="run" description="Compile TempelPlus">
 		<mkdir dir="${build.dir}" />
 		<mkdir dir="${build.dir}/classes" />
 		<javac classpathref="libraries" debug="on" deprecation="on" destdir="${build.dir}/classes" includes="**/*.java" optimize="on" encoding="UTF-8"
