@@ -4,7 +4,7 @@
 echo "Starting TempelPlus from shell script"
 
 #Variables
-JAVA_HOME="/usr/lib/jvm/java-6-openjdk/jre/bin/java"
+JAVA_HOME="/home/anton/bin/jdk1.6.0_32/jre/bin/java"
 #JAVA_HOME="java"
 ENCODING=UTF-8
 
