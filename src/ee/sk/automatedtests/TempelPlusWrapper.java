@@ -76,7 +76,7 @@ public class TempelPlusWrapper {
 
 		config_file = tpwConfigFile.getProperty("JDDOC_CONFIG");
 		tempelPlusPath = tpwConfigFile.getProperty("TEMPELPLUS_PATH");
-		//testDataPath = tpwConfigFile.getProperty("TESTDATA_PATH");
+		testDataPath = tpwConfigFile.getProperty("TESTDATA_PATH");
 		recipient = tpwConfigFile.getProperty("RECIPIENT");
 		//PIN = tpwConfigFile.getProperty("PIN");
 		// delay = dbConfigFile.getProperty("HOST");
