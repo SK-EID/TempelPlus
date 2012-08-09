@@ -87,8 +87,7 @@
 		</junit>	
 	</target>
 	
-<!--	<target name ="test" depends="run-tests" description="Generating HTML report"> -->
-	<target name ="test" description="Generating HTML report">
+	<target name ="test" depends="run-tests" description="Generating HTML report">
 		<junitreport todir="${reports}">
 			<fileset dir="${reports}/raw/">
 				<include name="TEST-*.xml"/>
