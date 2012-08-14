@@ -81,8 +81,7 @@
  		  <batchtest fork="yes" todir="${reports}/raw/">
 		  	<formatter type="xml"/>
 		    <fileset dir="${src}">
-		      <!-- <include name="**/*Test.java"/> -->
-		    	<include name="**/SingleTest.java"/>
+		       <include name="**/*Test.java"/>
 		    </fileset>
 		  </batchtest>
 		</junit>	
