@@ -64,7 +64,7 @@
 	<target name="run-tests" depends="compile" description="Running TempelPlus test suite" >
 		<mkdir dir="reports"/>
 		<mkdir dir="reports/raw"/>
-		<junit printsummary="yes" haltonfailure="no" showoutput="yes" >
+		<junit printsummary="yes" haltonfailure="no" showoutput="yes" maxmemory="1024">
 			<classpath>
 				<pathelement path="${build.dir}/classes"/>
 				<fileset dir="lib">
@@ -81,7 +81,8 @@
  		  <batchtest fork="yes" todir="${reports}/raw/">
 		  	<formatter type="xml"/>
 		    <fileset dir="${src}">
-		      <include name="**/*Test.java"/>
+		      <!-- <include name="**/*Test.java"/> -->
+		    	<include name="**/SingleTest.java"/>
 		    </fileset>
 		  </batchtest>
 		</junit>	
