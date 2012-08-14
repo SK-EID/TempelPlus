@@ -64,7 +64,7 @@
 	<target name="run-tests" depends="compile" description="Running TempelPlus test suite" >
 		<mkdir dir="reports"/>
 		<mkdir dir="reports/raw"/>
-		<junit printsummary="yes" haltonfailure="no" showoutput="yes" maxmemory="1024">
+		<junit printsummary="yes" haltonfailure="no" showoutput="yes" maxmemory="1024m">
 			<classpath>
 				<pathelement path="${build.dir}/classes"/>
 				<fileset dir="lib">
