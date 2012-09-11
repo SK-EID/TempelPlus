@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -547,7 +548,8 @@ public abstract class TempelPlus {
 			log = Logger.getLogger(TempelPlus.class);
 		} catch (IOException e) {
 			System.out.println("Reading configuration failed:");
-			e.printStackTrace();
+			
+			writeStackTraceToLog(e);
 			return true;
 		}
 		return false;
@@ -589,7 +591,25 @@ public abstract class TempelPlus {
 		time += seconds + " seconds";
 		if (log != null)
 		   log.info("TempelPlus " + version + " stopping. Time used: " + time);
+		
+		finishLogEntry();
 		System.exit(level);
+	}
+	
+	/**Just adds two blanklines to logfile
+	 * 
+	 */
+	private static void finishLogEntry() {
+		try {
+			String logFile = Config.getProp(Config.LOG_FILE);
+			FileOutputStream fos = new FileOutputStream(new File(logFile), true);
+			PrintStream ps = new PrintStream(fos);
+			ps.println();
+			ps.println();
+			ps.close();
+			fos.close();
+		} catch (Exception e) {
+		}
 	}
 
 	public void setOutPut(String arg) {
@@ -678,7 +698,7 @@ public abstract class TempelPlus {
 			
 			copying(inPut, outPut);
 		} catch (Exception e) {
-			e.printStackTrace();
+			writeStackTraceToLog(e);
 			return false;
 		}
 		return true;
@@ -702,7 +722,7 @@ public abstract class TempelPlus {
 			}
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			writeStackTraceToLog(e);
 			return false;
 		}
 		return true;
@@ -756,8 +776,7 @@ public abstract class TempelPlus {
 			Thread.sleep(seconds*1000);
 			log.info("...");
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			writeStackTraceToLog(e1);
 		}
 	}
 	
@@ -770,13 +789,14 @@ public abstract class TempelPlus {
 	public void verifyError(Exception e, String messageString, boolean ignoreFaults) {
 		
 		if(messageString != null){
-		log.error(messageString);
+			log.error(messageString);
 		}
 		
 		if (e.getClass() == DigiDocException.class) {
 			
 			printDdocErrorInformation(e);
 		}else {
+			writeStackTraceToLog(e);
 			log.error("Unexpected error (non digidocexception).");
 			log.error("Fault location: " + e.getStackTrace()[0]);
 			log.error("Fault type:" + e.getClass().toString().replace("class", ""));
@@ -795,6 +815,9 @@ public abstract class TempelPlus {
 	 * @param e - Exception (DigiDocException)
 	 */
 	private void printDdocErrorInformation(Exception e) {
+		
+		writeStackTraceToLog(e);
+		
 		int exceptionCode = ((DigiDocException) e).getCode();
 		log.error("A Digidoc exception occured! Error code: " + exceptionCode);
 		
@@ -809,5 +832,19 @@ public abstract class TempelPlus {
 				  exceptionCode == DigiDocException.ERR_OCSP_REQ_SEND ){
 			log.error("Creating or sending OCSP request failed!");
 		}
+	}
+
+	private static void writeStackTraceToLog(Exception e) {
+		String logFile = Config.getProp(Config.LOG_FILE);
+		
+		try {
+			FileOutputStream fos = new FileOutputStream(new File(logFile), true);
+			PrintStream ps = new PrintStream(fos);
+			e.printStackTrace(ps);
+			ps.close();
+			fos.close();
+		} catch (Exception e2) {
+			log.error("Could not write a stacktrace to logfile: " + logFile);
+		} 
 	}
 }
