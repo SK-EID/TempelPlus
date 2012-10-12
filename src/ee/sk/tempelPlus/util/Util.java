@@ -33,32 +33,38 @@ public class Util {
 	         X509CertImpl cert = (X509CertImpl) certk;
 	         CertificatePoliciesExtension c = (CertificatePoliciesExtension) cert.getExtension(new ObjectIdentifier(
 	               "2.5.29.32"));
-	         Object o = c.get("policies");
-	         if (o instanceof ArrayList) {
-	            ArrayList a = (ArrayList) o;
-	            for (Object x : a) {
-	               if (x instanceof PolicyInformation) {
-	                  PolicyInformation p = (PolicyInformation) x;
-	                  //Fix @ 10.04.2012 - Test Corporate certificates are allowed too.(Identifier starting with "1.3.6.1.4.1.10015.3.7") 
-	                  if (p.getPolicyIdentifier().getIdentifier().toString().startsWith("1.3.6.1.4.1.10015.7")){
-	                	  log.info("Executing operation with Corporate certificate");
-	                	  return;  
-	                  }else if (p.getPolicyIdentifier().getIdentifier().toString().startsWith("1.3.6.1.4.1.10015.3.7")){
-	                	  log.info("Executing operation with TEST Corporate certificate");
-	                	  return;
-	                  }
-	               }
-	            }
-	         }
+	         if (c == null)
+	        	 throw new NullPointerException("Certificate's policies extension is missing.");
+		         Object o = c.get("policies");
+		         if (o instanceof ArrayList) {
+		            ArrayList a = (ArrayList) o;
+		            for (Object x : a) {
+		               if (x instanceof PolicyInformation) {
+		                  PolicyInformation p = (PolicyInformation) x;
+		                  //Fix @ 10.04.2012 - Test Corporate certificates are allowed too.(Identifier starting with "1.3.6.1.4.1.10015.3.7") 
+		                  if (p.getPolicyIdentifier().getIdentifier().toString().startsWith("1.3.6.1.4.1.10015.7")){
+		                	  log.info("Executing operation with Corporate certificate");
+		                	  return;  
+		                  }else if (p.getPolicyIdentifier().getIdentifier().toString().startsWith("1.3.6.1.4.1.10015.3.7")){
+		                	  log.info("Executing operation with TEST Corporate certificate");
+		                	  return;
+		                  }
+		               }
+		            }
+		         }
 	         log.error("Operation is allowed only with Corporate certificates (DigiTempel)");
+	         TempelPlus.exit(1);
+	      } catch (NullPointerException e) {
+	         log.error("Error checking policy! " + e.getMessage());
 	         TempelPlus.exit(1);
 	      } catch (Exception e) {
 	         log.error("Error checking policy!", e);
-	      }
+	         TempelPlus.exit(1);
+		  }
 	   }
 
 
-   public static void initOSCPSerial(X509Certificate cert5) throws NoSuchAlgorithmException, CertificateException,
+   public static void initOCSPSerial(X509Certificate cert5) throws NoSuchAlgorithmException, CertificateException,
          IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, KeyStoreException,
          NoSuchProviderException {
       String sigFlag = ConfigManager.instance().getProperty("SIGN_OCSP_REQUESTS");

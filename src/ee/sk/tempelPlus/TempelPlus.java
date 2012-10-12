@@ -38,7 +38,7 @@ import ee.sk.utils.ConfigManager;
  */
 
 public abstract class TempelPlus {
-	// Käsud
+	// KĆ¤sud
 	private static final String SIGN = "sign";
 	private static final String VERIFY = "verify";
 	private static final String REMOVE = "remove";
@@ -51,28 +51,35 @@ public abstract class TempelPlus {
 	public boolean follow = false;
 	public File outputFolder;
 	private static String configFile = null;
-	public static final String version = "v1.1.0";
+	public static final String version = "v1.1.1";
 	static long start = 0;
 
 	private static Logger log = null;
-	// Üldine parameeter
+	// Ć�ldine parameeter
 	public final String OUTPUT_F = "-output_folder";
 	public final String REM_INPUT = "-remove_input";
 	public final String FOLLOW = "-follow";
 	public final String PARAMPIN = "-pin";
+	public final String SLOT = "-slot";
+	public final String LABEL = "-label";
+	public final String CMN_EXT_DIR = "-cmn_ext_dir";
 	
 	public boolean usingOutPutFolder = false;
+	public boolean usingSlotAndLabel = false;
+	public boolean cmnExtDir = false; // if common extraction directory is used for decryption/extraction
 	boolean firstRun = true;
 	
 	String pin;
 	public String commandParameterPin = null;
+	public long commandParameterSlot = -1;
+	public String commandParameterLabel = null;
 
 	public static void main(String[] args) throws DigiDocException
 	{
 		for (int i = 0; i < args.length; i++) {
 			args[i] = args[i].replace((char) 8211, (char) 45);// asendame valed
 																// kriipsud
-																// õigetega
+																// Ćµigetega
 			args[i] = args[i].replace((char) 8212, (char) 45);
 		}
 //		for (String arg: args)
@@ -362,6 +369,20 @@ public abstract class TempelPlus {
 		log.debug("Made file:" + f.getAbsolutePath());
 		return f.getAbsolutePath();
 	}
+	
+	/** Makes filename without removing ".", adds (n+1) to the name if needed
+	 * @param name - filename
+	 * @param newExtension - (target) file extension. Use empty string in case of directories.
+	 * @return new filename with extension (AbsolutePath)
+	 * @throws TempelPlusException
+	 */
+	public String makeNameWithDot(String name, String newExtension) throws TempelPlusException {
+		
+		File f = checkIfNameNumbersNeeded(name, newExtension);
+		
+		log.debug("Made file:" + f.getAbsolutePath());
+		return f.getAbsolutePath();
+	}
 
 	/** Returns new File if filename was inappropriate adds (n+1) to the name
 	 * @param name
@@ -532,12 +553,12 @@ public abstract class TempelPlus {
 			Config.init(Config.getProps().getProperty(Config.JDOC_LOC)
 					+ File.separator + "jdigidoc.cfg"); // //loen jdigidoci
 														// konfiguratsiooni
-			Config.init(configFile); // vajalik kuna mõni jdigidoci väärtus
-										// võib olla üle kirjutanud minu konfi
+			Config.init(configFile); // vajalik kuna mĆµni jdigidoci vĆ¤Ć¤rtus
+										// vĆµib olla Ć¼le kirjutanud minu konfi
 			ConfigManager.init(Config.getProps().getProperty(Config.JDOC_LOC)
 					+ File.separator + "jdigidoc.cfg");
-			ConfigManager.init(configFile);// kirjutame üle
-			// Sätime paika logimise
+			ConfigManager.init(configFile);// kirjutame Ć¼le
+			// SĆ¤time paika logimise
 			// Appender app = new FileAppender(new
 			// PatternLayout("%d{yyyy-MM-dd HH:mm:ss} [%c{1},%p] %M; %m%n"),
 			// Config.getProp(Config.LOG_FILE));

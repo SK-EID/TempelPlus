@@ -25,7 +25,7 @@ public class Run {
       ArrayList<URL> urls = new ArrayList<URL>();
       urls.add(new File(jDocLoc+File.separator).toURI().toURL());
       //urls.add(new File(jDocLoc+File.separator+"JDigiDoc.jar").toURI().toURL());
-      urls.add(new File(jDocLoc+File.separator+"jdigidoc-3.6.0.157.jar").toURI().toURL());
+      urls.add(new File(jDocLoc+File.separator+"jdigidoc-r7422.jar").toURI().toURL());
       //urls.add(new File(jDocLoc+File.separator+"tinyxmlcanonicalizer-0.9.0.jar").toURI().toURL());
       urls.add(new File("TempelPlus.jar").toURI().toURL());
       urls.add(new File(jDocLoc+File.separator+"jdcerts.jar").toURI().toURL());

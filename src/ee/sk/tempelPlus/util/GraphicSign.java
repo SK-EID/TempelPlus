@@ -219,7 +219,7 @@ public class GraphicSign extends JFrame{
                      .getProps().getProperty(Config.POSTCODE));
 
          Util.checkCertificate(cert);// Kontrollime sertifikaati
-         Util.initOSCPSerial(cert);
+         Util.initOCSPSerial(cert);
          for(int i=0;i<model.size();i++){
             File file=(File) model.get(i);
             SignedDoc sdoc;

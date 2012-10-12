@@ -25,6 +25,7 @@ public class Config {
    public static final String CQUEST = "control_question";
    public static final String LOG_FILE = "log_file";
    public static final String BC_PROV = "bc_prov";
+   public static final String CMN_EXT_DIR = "cmn_ext_dir";
 
    public static final String ROLE = "role";
    public static final String STATE = "state";

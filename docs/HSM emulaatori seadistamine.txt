@@ -1,0 +1,23 @@
+HSM emulaatori seadistamine (Windows, 32bit java).
+
+1. HSM emulaatori pakist kopeerida cryptoki kaust C kettale.
+
+2. Sertide ja võtmete lisamine HSM emulaatorisse:
+	a. Tee HSM Admin utikaga slot ja initsialiseeri see
+	b. Pane lisatav sert ja privaatvõti pkcs12 konteinerisse.
+	c. Tee ctkmu.exe utikaga pkcs12 faili import vajalikku slotti (atribuudid S ja D peavad olema seatud vastavalt allkirjastamise või dekrüpteerimise võtmete puhul. 
+	Objektide hilisemaks muutmiseks peab olema atribuut M (modifiable) seatud).
+	Näiteks:
+	ctkmu j --slot-num=4 --name=TPL_sign_04 --attributes=PMTSV C:\p12\Kristi_Tempel_2K.p12
+	ctkmu j --slot-num=4 --name=TPL_enc_04 --attributes=PMTDV C:\p12\Kristi_Krupto_2K.p12
+	
+Märkus: privaatvõti ja sert peavad olema samas slotis, nende labelite nimed peavad olema samad (importimisel pannakse automaatselt p12 konteineris olevatele objektidele labeli nimed 
+vastavalt --name atribuudi väärtusele).	Labeli nimi peab sloti piires olema unikaalne. Importimisel määratav sloti number peab olema sloti ID väärtus.
+Sloti ID-d saab kontrollida pkcs11-tool utikaga (pkcs11-tool --module cryptoki.dll -L), sloti ID on väljundis hex numbriga tähistatud.
+
+Märkus2: kui tahta HSM-i kasutada sama põhimõttega nagu etokenit (st ilma sloti ja labelita), siis peavad serdi ja privaatvõtme ID atribuudi väärtused olema võrdsed 
+(saab kontrollida Cryptoki Token Browser-is, kui vastavasse slotti sisse logida).
+
+3. TempelPlusi seadistamine:
+	a. Konf failis seadistada DIGIDOC_SIGN_PKCS11_DRIVER väärtus viitama cryptoki.dll failile failisüsteemis. Antud asukoht lisada Path süsteemimuutujasse.
+	b. PIN muuta konf failis vastavalt HSM-i sloti pin-ile (kui ei anta ette käsurealt).

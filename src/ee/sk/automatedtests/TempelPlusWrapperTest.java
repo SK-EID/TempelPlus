@@ -654,7 +654,7 @@ public class TempelPlusWrapperTest {
 		tempelPlusWrapper.deleteFile(fileIn.split("[.]")[0]+".ddoc");
 		
 		String container = tempelPlusWrapper.getEncryptedContainer(fileIn);
-		String contFolder = tempelPlusWrapper.getNameOnly(fileIn);
+		String contFolder = fileIn.split("[.]")[0] + ".cdoc(1)"; // expected output folder is with .cdoc ending
 		
 		tempelPlusWrapper.deleteFile(contFolder);
 		
@@ -676,12 +676,12 @@ public class TempelPlusWrapperTest {
 
 	/*
 	 * TP-27_29: Calculate checksum of input files, encrypt files via
-	 * TempelPlus, decrypt files via TempelPlus, calculate output files
-	 * checksums, compare checksums.
+	 * TempelPlus, decrypt files via TempelPlus by extracting the decrypted files directly to output folder, 
+	 * calculate output files checksums, compare checksums.
 	 * 
 	 * Return true if checksums match.
 	 */
-	/*@Test
+	@Test
 	public final void testTP27_29() throws Exception {
 		String folder = testDataPath + "TP-27_29" + slash;
 		String outputFolder = folder + "output_folder" + slash;
@@ -701,12 +701,12 @@ public class TempelPlusWrapperTest {
 			String newFileName = noExtFName.substring(0,
 					noExtFName.lastIndexOf("."));
 			newFileName = newFileName.concat(slash);
-			String result = outputFolder + newFileName + f.getName();
+			String result = outputFolder + /*newFileName +*/ f.getName();
 			outputFiles[l] = result;
 		}
 		tempelPlusWrapper.runTempelPlus(new String[]{"encrypt", folder, "-cert", cert1, cert3});
 		tempelPlusWrapper.outputFolderExist(outputFolder);
-		tempelPlusWrapper.runTempelPlus(new String[]{"decrypt", folder, "-output_folder", outputFolder, "-recipient", recipient});
+		tempelPlusWrapper.runTempelPlus(new String[]{"decrypt", folder, "-output_folder", outputFolder, "-recipient", recipient, "-cmn_ext_dir"}); // files are extracted directly to output folder
 		
 		TP27_29 = tempelPlusWrapper.checkSumFolderInputOutput(inputFiles, outputFiles);
 		
@@ -715,7 +715,7 @@ public class TempelPlusWrapperTest {
 		
 		tempelPlusWrapper.cleanFolder(folder, new String[]{".cdoc"});
 		tempelPlusWrapper.deleteFile(outputFolder);
-	}*/
+	}
 
 
 	/*
