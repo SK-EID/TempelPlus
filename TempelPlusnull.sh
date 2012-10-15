@@ -5,7 +5,7 @@ echo "Starting TempelPlus from shell script"
 
 #Variables
 JAVA_HOME="/home/anton/bin/jdk1.6.0_32/jre/bin/java"
-﻿CLASSPATH=﻿﻿/home/anton/bin/jenkins/workspace/Tempel Plus on Fedora 12 x86/JDigiDoc/jdigidoc-r7422.jar
+﻿CLASSPATH="\"/home/anton/bin/jenkins/workspace/Tempel Plus on Fedora 12 x86/JDigiDoc/JDigiDoc-r7422.jar\""
 #JAVA_HOME="java"
 ENCODING=UTF-8
 
