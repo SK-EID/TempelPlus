@@ -22,7 +22,7 @@
 	<classpathentry kind="lib" path="JDigiDoc/lib/xmlParserAPIs.jar"/>
 	<classpathentry kind="lib" path="JDigiDoc/lib/xmlsec.jar"/>
 	<classpathentry kind="lib" path="JDigiDoc/lib/xmlsecSamples.jar"/>
-	<classpathentry kind="lib" path="JDigiDoc/jdigidoc-3.6.0.157.jar" sourcepath="JDigiDoc/jdigidoc-3.6.0.157-source.jar"/>
+	<classpathentry kind="lib" path="JDigiDoc/jdigidoc-r7422.jar" sourcepath="JDigiDoc/jdigidoc-r7422-source.jar"/>
 	<classpathentry kind="lib" path="JDigiDoc/jdcerts.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
