@@ -25,6 +25,7 @@ import ee.sk.digidoc.factory.DigiDocFactory;
 import ee.sk.digidoc.DataFile;
 import ee.sk.digidoc.DigiDocException;
 import ee.sk.digidoc.SignedDoc;
+import ee.sk.tempelPlus.util.Util;
 import ee.sk.utils.ConfigManager;
 
 /**
@@ -77,7 +78,7 @@ public class TempelPlusWrapper {
 		config_file = tpwConfigFile.getProperty("JDDOC_CONFIG");
 		tempelPlusPath = tpwConfigFile.getProperty("TEMPELPLUS_PATH");
 		testDataPath = tpwConfigFile.getProperty("TESTDATA_PATH");
-		recipient = tpwConfigFile.getProperty("RECIPIENT");
+		recipient = Util.convertPropString("RECIPIENT", tpwConfigFile.getProperty("RECIPIENT"));
 		//PIN = tpwConfigFile.getProperty("PIN");
 		// delay = dbConfigFile.getProperty("HOST");
 		cert1 = testDataPath + tpwConfigFile.getProperty("CERT1");

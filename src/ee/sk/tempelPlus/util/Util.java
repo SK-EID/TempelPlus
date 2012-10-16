@@ -102,14 +102,14 @@ public class Util {
    }
 
    /**
-    *LigipÃ¤Ã¤s SK OCSP teenusele on vaid IP-pÃµhise ligipÃ¤Ã¤su alusel vÃµi
-    * asutusele vÃ¤ljastatud ligipÃ¤Ã¤sutÃµendiga, ligipÃ¤Ã¤su ei ole personaalse
-    * juurdepÃ¤Ã¤sutÃµendiga. Selleks peab kÃ¤ivitamisel kontrollima
-    * juuredepÃ¤Ã¤sutÃµendi tÃ¼Ã¼pi! Isikliku juurdepÃ¤Ã¤sutÃµendi tunneb Ã¤ra selle
-    * jÃ¤rgi, et selles on sertifikaadi Subjecti (DN-i) vÃ¤li SERIALNUMBER
-    * pikkusega 11 numbrit. Kui vÃ¤li ei ole 11 numbrit vÃµib eeldada et tegu on
-    * asutusele vÃ¤ljastatud juurdepÃ¤Ã¤sutÃµendiga (Urmo: kommentaar â€“ jÃµle loll
-    * tuvastus, no aga praegu ma midagi paremat vÃ¤lja ei mÃµelnud ï�Š)
+    *LigipĆ�Ā¤Ć�Ā¤s SK OCSP teenusele on vaid IP-pĆ�Āµhise ligipĆ�Ā¤Ć�Ā¤su alusel vĆ�Āµi
+    * asutusele vĆ�Ā¤ljastatud ligipĆ�Ā¤Ć�Ā¤sutĆ�Āµendiga, ligipĆ�Ā¤Ć�Ā¤su ei ole personaalse
+    * juurdepĆ�Ā¤Ć�Ā¤sutĆ�Āµendiga. Selleks peab kĆ�Ā¤ivitamisel kontrollima
+    * juuredepĆ�Ā¤Ć�Ā¤sutĆ�Āµendi tĆ�Ā¼Ć�Ā¼pi! Isikliku juurdepĆ�Ā¤Ć�Ā¤sutĆ�Āµendi tunneb Ć�Ā¤ra selle
+    * jĆ�Ā¤rgi, et selles on sertifikaadi Subjecti (DN-i) vĆ�Ā¤li SERIALNUMBER
+    * pikkusega 11 numbrit. Kui vĆ�Ā¤li ei ole 11 numbrit vĆ�Āµib eeldada et tegu on
+    * asutusele vĆ�Ā¤ljastatud juurdepĆ�Ā¤Ć�Ā¤sutĆ�Āµendiga (Urmo: kommentaar Ć¢ā‚¬ā€� jĆ�Āµle loll
+    * tuvastus, no aga praegu ma midagi paremat vĆ�Ā¤lja ei mĆ�Āµelnud ĆÆļæ½Å )
     *
     * @param cert5
     */
@@ -147,5 +147,13 @@ public class Util {
       }
       return name;
    }
-
+   
+   public static String convertPropString(String name, String value)  {
+		try {
+			return new String(value.getBytes("ISO-8859-1"), "UTF-8");
+		} catch (Exception e) {
+			log.error("Property " + value + " could not be read from properties file.");
+		}
+	   return null;
+   }
 }

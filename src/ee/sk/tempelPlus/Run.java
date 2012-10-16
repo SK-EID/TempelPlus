@@ -31,12 +31,13 @@ public class Run {
       urls.add(new File(jDocLoc+File.separator+"jdcerts.jar").toURI().toURL());
       String bcProv = Config.getProp(Config.BC_PROV);
       if(libDir.isDirectory()){
+    	  System.out.println("Using JDigiDoc library: " + jDocLoc);
          for(String file:libDir.list()){
             if(!file.toLowerCase().contains("bcprov")||file.equals(bcProv))
                urls.add(new File(libDir.getAbsolutePath()+File.separator+file).toURI().toURL());
          }
       }else{
-         System.out.println("JDoc location is invalid!");
+         System.out.println("JDoc location is invalid: " + jDocLoc);
          System.exit(1);
       }
 
