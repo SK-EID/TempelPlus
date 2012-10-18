@@ -3,6 +3,7 @@ package ee.sk.tempelPlus.util;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Properties;
 
@@ -47,11 +48,11 @@ public class Config {
    }
 
    public static void init(String fileName) throws IOException {
-      InputStream conf = new FileInputStream(fileName);
-      if (props == null)
-         props = new Properties();
-      props.load(conf);
-      conf.close();
+	  InputStreamReader confReader = new InputStreamReader(new FileInputStream(fileName));
+	  if (props == null)
+		  props = new Properties();
+	  props.load(confReader);
+	  confReader.close();
       sdf = new SimpleDateFormat(Config.getProp(Config.DATE_F));
    }
 

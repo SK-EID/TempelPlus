@@ -148,12 +148,5 @@ public class Util {
       return name;
    }
    
-   public static String convertPropString(String name, String value)  {
-		try {
-			return new String(value.getBytes("ISO-8859-1"), "UTF-8");
-		} catch (Exception e) {
-			log.error("Property " + value + " could not be read from properties file.");
-		}
-	   return null;
-   }
+
 }

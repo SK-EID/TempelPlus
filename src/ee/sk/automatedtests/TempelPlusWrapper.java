@@ -69,7 +69,9 @@ public class TempelPlusWrapper {
 
 		// Function to load variable values from config file
 		try {
-			tpwConfigFile.load(new FileInputStream(tpwConfigPath));
+			InputStreamReader confReader = new InputStreamReader(new FileInputStream(configFile));
+			tpwConfigFile.load(confReader);
+			confReader.close();
 		} catch (Exception e) {
 			Log.write("Configuration file: " + configFile + " not found or is unreachable.", "ERROR");
 			throw new RuntimeException("Configuration file: " + configFile + " not found or is unreachable.");
@@ -78,7 +80,7 @@ public class TempelPlusWrapper {
 		config_file = tpwConfigFile.getProperty("JDDOC_CONFIG");
 		tempelPlusPath = tpwConfigFile.getProperty("TEMPELPLUS_PATH");
 		testDataPath = tpwConfigFile.getProperty("TESTDATA_PATH");
-		recipient = Util.convertPropString("RECIPIENT", tpwConfigFile.getProperty("RECIPIENT"));
+		recipient = tpwConfigFile.getProperty("RECIPIENT");
 		//PIN = tpwConfigFile.getProperty("PIN");
 		// delay = dbConfigFile.getProperty("HOST");
 		cert1 = testDataPath + tpwConfigFile.getProperty("CERT1");
