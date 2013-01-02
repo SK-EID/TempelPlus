@@ -5,7 +5,7 @@ echo "Starting TempelPlus from shell script"
 
 #Variables
 JAVA_HOME="java"
-CLASSPATH="JDigiDoc/JDigiDoc-r7422.jar"
+CLASSPATH="/tmp/JDigiDoc/jdigidoc-r7422.jar;/tmp/JDigiDoc/jdcerts.jar"
 #JAVA_HOME="java"
 ENCODING=UTF-8
 
