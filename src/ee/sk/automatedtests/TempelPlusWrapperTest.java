@@ -25,11 +25,14 @@ public class TempelPlusWrapperTest {
 	String slash = tempelPlusWrapper.slash;
 	String testDataPath = tempelPlusWrapper.testDataPath;
 	String recipient = tempelPlusWrapper.recipient;
+	String cn = tempelPlusWrapper.cn;
 	String cert1 = tempelPlusWrapper.cert1;
 	String cert2 = tempelPlusWrapper.cert2;
 	String cert3 = tempelPlusWrapper.cert3;
 	
-	public boolean TP1_1, TP1_2, TP9, TP10_14_13, TP11, TP12, TP15, TP16 , TP17, TP18, TP19, TP20, TP21, TP22, TP23, TP24, TP25, TP26_28, TP27_29, TP30, TP36, TP37, TP38, TP39 = false;
+	public boolean TP1_1, TP1_2, TP9, TP10_14_13, TP11, TP12, TP15, TP16 , TP17, 
+	TP18, TP19, TP20, TP21, TP22, TP23, TP24, TP25, TP26_28, TP27_29, TP30, TP36, 
+	TP37, TP38, TP39, TP40, TP41, TP42, TP43, TP44, TP45 = false;
 	
 	@Before
 	public void before(){
@@ -883,6 +886,215 @@ public class TempelPlusWrapperTest {
 		
 	}*/
 	
+	
+	// NEW TESTS for TP v 1.2.0+
+	/*
+	 * TP-40: Verification with extra -cn argument, correct CN
+	 * 
+	 * Pass if verification uses -cn argument and validation works
+	 */
+	@Test
+	public final void testTP40() throws Exception  {
+		String folder = testDataPath + "TP-40_41" + slash;
+		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		tempelPlusWrapper.runTempelPlus(new String[]{"verify", fileIn, "-cn", cn});
+		
+		if(tempelPlusWrapper.verifyValidity(fileIn)
+		   && tempelPlusWrapper.verifyOutPut("Verifying file \\d of \\d")
+		   && tempelPlusWrapper.verifyOutPut("OK")
+		   ){
+			TP40 = true;
+		}
+		assertTrue(TP40);
+	}
+	
+	/*
+	 * TP-41: Verification with extra -cn argument, incorrect CN
+	 * 
+	 * Pass if verification uses -cn argument with wrong value and validation does not succeed
+	 */
+	@Test
+	public final void testTP41() throws Exception  {
+		String folder = testDataPath + "TP-40_41" + slash;
+		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		tempelPlusWrapper.runTempelPlus(new String[]{"verify", fileIn, "-cn", "\"WRONG RECIPIENT\""});
+		
+		if(tempelPlusWrapper.verifyOutPut("Verifying file \\d of \\d")
+		   && tempelPlusWrapper.verifyOutPut("Verification unsuccessful.")
+		   ){
+			TP41 = true;
+		}
+		assertTrue(TP41);
+	}
+	
+	/*
+	 * TP-42: Verification with extra -verify argument, correct CN
+	 * 
+	 * Pass if extraction uses -verify argument with wrong value and validation succeeds
+	 */
+	@Test
+	public final void testTP42() throws Exception  {
+		String folder = testDataPath + "TP-42_43_44" + slash;
+		String outputFolder = folder + slash + "output";
+		tempelPlusWrapper.deleteFile(outputFolder);
+		
+		if(!new File(outputFolder).mkdir()){
+			throw new Exception("Could not create test output directory: " + outputFolder);
+		}
+		
+		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", cn, "-output_folder", outputFolder});
+		
+		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
+		   &&tempelPlusWrapper.verifyOutPut("\\d documents verified successfully")
+		   && tempelPlusWrapper.verifyOutPutIsNot("Verification unsuccessful.")
+		   && tempelPlusWrapper.verifyOutPut(", OK")
+		   ){
+			TP42 = true;
+		}
+		
+		tempelPlusWrapper.deleteFile(outputFolder);
+		assertTrue(TP42);
+	}
+	
+	/*
+	 * TP-43: Verification with extra -verify argument, incorrect CN
+	 * 
+	 * Pass if extraction uses -verify argument with wrong value and validation does not succeed
+	 */
+	@Test
+	public final void testTP43() throws Exception  {
+		String folder = testDataPath + "TP-42_43_44" + slash;
+		String outputFolder = folder + slash + "output";
+		tempelPlusWrapper.deleteFile(outputFolder);
+		
+		if(!new File(outputFolder).mkdir()){
+			throw new Exception("Could not create test output directory: " + outputFolder);
+		}
+		
+		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", "\"WRONG RECIPIENT\"", "-output_folder", outputFolder});
+		
+		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
+		   &&tempelPlusWrapper.verifyOutPut("\\d documents verified successfully")
+		   && tempelPlusWrapper.verifyOutPut("Verification unsuccessful.")
+		   ){
+			TP43 = true;
+		}
+		
+		tempelPlusWrapper.deleteFile(outputFolder);
+		assertTrue(TP43);
+	}
+	
+	/*
+	 * TP-42: Verification with extra -verify argument without specified CN value
+	 * 
+	 * Pass if extraction uses -verify argument and verification works
+	 */
+	@Test
+	public final void testTP44() throws Exception  {
+		String folder = testDataPath + "TP-42_43_44" + slash;
+		String outputFolder = folder + slash + "output";
+		tempelPlusWrapper.deleteFile(outputFolder);
+		
+		if(!new File(outputFolder).mkdir()){
+			throw new Exception("Could not create test output directory: " + outputFolder);
+		}
+		
+		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", "-output_folder", outputFolder});
+		
+		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
+		   &&tempelPlusWrapper.verifyOutPut("\\d documents verified successfully")
+		   && tempelPlusWrapper.verifyOutPutIsNot("Verification unsuccessful.")
+		   && tempelPlusWrapper.verifyOutPut(", OK")
+		   ){
+			TP44 = true;
+		}
+		
+		tempelPlusWrapper.deleteFile(outputFolder);
+		assertTrue(TP44);
+	}
+	
+	
+	/*
+	 * TP-45: Sign a directory that has subdirectories, make sure that output has the same subdirectory structure
+	 */
+	@Test
+	public final void testTP45() throws Exception  {
+		String folder = testDataPath + "TP-45_1" + slash;
+		String outputFolder = testDataPath + "TP-45_2" + slash;
+		File outputFolderObj = new File(outputFolder);
+		String subDir1 = slash + "1";
+		String subDir2 = slash + "1" + slash + "2";
+		
+		int expectedNumberOfFiles = 3;
+		
+		tempelPlusWrapper.deleteFile(outputFolder);
+		
+		if(!outputFolderObj.mkdir()){
+			throw new Exception("Could not create test output directory: " + outputFolder);
+		}
+		
+		tempelPlusWrapper.runTempelPlus(new String[]{"sign", folder, "-output_folder", outputFolder});
+		
+		if(outputFolderObj.listFiles().length > 0 && 
+		   new File(outputFolder + subDir1).listFiles().length > 0 &&
+		   new File(outputFolder + subDir2).listFiles().length > 0
+			){
+			TP44 = true;
+		}
+		
+		if(TP44 && tempelPlusWrapper.verifyOutPut(expectedNumberOfFiles + " documents signed successfully")){
+			TP44 = true;
+		}else{
+			TP44 = false;
+		}
+		
+		tempelPlusWrapper.deleteFile(outputFolder);
+		outputFolderObj.mkdir();
+		assertTrue(TP44);
+	}
+	
+	/*
+	 * TP-45: Decrypt a directory that has subdirectories, make sure that output has the same subdirectory structure
+	 */
+	@Test
+	public final void testTP46() throws Exception  {
+		String folder = testDataPath + "TP-46_1" + slash;
+		String outputFolder = testDataPath + "TP-46_2" + slash;
+		File outputFolderObj = new File(outputFolder);
+		String subDir1 = slash + "1";
+		String subDir2 = slash + "1" + slash + "2";
+		
+		int expectedNumberOfFiles = 3;
+		
+		tempelPlusWrapper.deleteFile(outputFolder);
+		
+		if(!outputFolderObj.mkdir()){
+			throw new Exception("Could not create test output directory: " + outputFolder);
+		}
+		
+		tempelPlusWrapper.runTempelPlus(new String[]{"decrypt", folder, "-output_folder", outputFolder, "-recipient", recipient});
+		
+		if(outputFolderObj.listFiles().length > 0 && 
+		   new File(outputFolder + subDir1).listFiles().length > 0 &&
+		   new File(outputFolder + subDir2).listFiles().length > 0
+			){
+			TP45 = true;
+		}
+		
+		if(TP45 && tempelPlusWrapper.verifyOutPut(expectedNumberOfFiles + " files decrypted successfully! " + expectedNumberOfFiles + " files created.")){
+			TP45 = true;
+		}else{
+			TP45 = false;
+		}
+		
+		tempelPlusWrapper.deleteFile(outputFolder);
+		outputFolderObj.mkdir();
+		assertTrue(TP45);
+	}
+	
 	/*
 	 * TP-37: Encrypt file via TempelPlus with a broken certificate
 	 * 
@@ -898,4 +1110,8 @@ public class TempelPlusWrapperTest {
 		TP37 = tempelPlusWrapper.brokenCertificateVerify();
 		assertTrue(TP37);
 	}
+	
+	
+	
+	
 }

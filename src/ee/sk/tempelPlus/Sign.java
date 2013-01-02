@@ -45,8 +45,6 @@ public class Sign extends TempelPlus {
 	public boolean run(String[] args) {
 		parseParams(args);
 
-		File currentFile = null;
-		String outPutFileName = null;
 		TokenKeyInfo signing_token = null; // in case of HSM
 		int signing_token_index = -1; // in case of etoken
 		String signer_cn = Config.getProp(Config.SIGNCN);
@@ -62,11 +60,15 @@ public class Sign extends TempelPlus {
 				exit(1);
 			}
 			List<File> workFiles = getFiles(args[1], new ArrayList<File>());
+			List<String> workFileOutputPaths = getRelativeOutputPaths(workFiles, args[1]);
+			
 			if (workFiles.size() == 0 && !follow) {
 				log.error("No files specified!");
 				printHelp();
 				exit(0);
 			}
+			
+			
 			setOutPut(args[1]);
 			// Kontrollime failide olemasolu
 //         for (File file : workFiles) {
@@ -239,8 +241,15 @@ public class Sign extends TempelPlus {
 					sig.setSignatureValue(sigval);
 					sig.setHttpFrom("TempelPlus version: " + version);
 					sig.getConfirmation();
-					outPutFileName = outputFolder + File.separator + file.getName();
-
+					
+					outPutFileName = outputFolder /* + File.separator */ + workFileOutputPaths.get(i-1) + File.separator + file.getName();
+					
+					//Where actually file will be written
+					if(!ensureDirectoryExistence(outputFolder /* + File.separator */ + workFileOutputPaths.get(i-1))){
+						log.error("Could not create an output directory: " + outputFolder /* + File.separator */ + workFileOutputPaths.get(i-1));
+						exit(1);
+					}
+					
 					if (usingOutPutFolder || (!usingOutPutFolder && !isDigiDoc(file))) {
 						outPutFileName = makeName(outPutFileName, Config.getProps().getProperty(Config.FORMAT));
 						log.info("Creating new container: " + outPutFileName);
@@ -260,7 +269,11 @@ public class Sign extends TempelPlus {
 				}
 				if (follow) {
 					Thread.sleep(1000);
+					
+					// Update workfiles and output pathes
 					workFiles = getFiles(args[1], new ArrayList<File>());
+					workFileOutputPaths = getRelativeOutputPaths(workFiles, args[1]);
+					
 					i = 1;
 				} else {
 					break;
@@ -278,8 +291,7 @@ public class Sign extends TempelPlus {
 
 			if (follow) {
 				//e.printStackTrace();
-				log.info("Working in follow mode"); //, signing current file FAILED: \"" + currentFile.getName() + "\"");
-
+				log.info("Working in follow mode");
 				String errorFolderPath;
 
 				errorFolderPath = outputFolder.getAbsolutePath() + File.separator + "error";
@@ -529,18 +541,7 @@ public class Sign extends TempelPlus {
 					}
 				}
 
-				if (follow) {
-					if (outputFolder == null && remInput) {
-						log.error("Must specify output folder when using follow!");
-						exit(1);
-					} else if (outputFolder == null) {
-						log.error("Must specify output folder and remove input when using follow!");
-						exit(1);
-					} else if (!remInput) {
-						log.error("Must specify remove input when using follow!");
-						exit(1);
-					}
-				}
+				checkFollowArgs(follow, outputFolder, remInput);
 
 				if (commandParameterSlot >= 0 && commandParameterLabel != null) {
 					usingSlotAndLabel = true;

@@ -40,7 +40,7 @@ public class TempelPlusWrapper {
 	private static BufferedReader stdout, stderr;
 	static Vector<String> outputLines;
 
-	String config_file, slash, tempelPlusPath, testDataPath, recipient, cert1, cert2, cert3, bits;
+	String config_file, slash, tempelPlusPath, testDataPath, recipient, cert1, cert2, cert3, bits, cn;
 
 	boolean printChecksumData, windows;
 
@@ -81,6 +81,7 @@ public class TempelPlusWrapper {
 		tempelPlusPath = tpwConfigFile.getProperty("TEMPELPLUS_PATH");
 		testDataPath = tpwConfigFile.getProperty("TESTDATA_PATH");
 		recipient = tpwConfigFile.getProperty("RECIPIENT");
+		cn = tpwConfigFile.getProperty("SUBJECT_CN");
 		//PIN = tpwConfigFile.getProperty("PIN");
 		// delay = dbConfigFile.getProperty("HOST");
 		cert1 = testDataPath + tpwConfigFile.getProperty("CERT1");
@@ -527,20 +528,42 @@ public class TempelPlusWrapper {
 		}
 		return isTempelPlusVerified;
 	}
+	
+	public boolean verifyOutPut(String patternString) {
+		for (int i = 0; i < outputLines.size(); i++) {
+			Pattern pattern = Pattern.compile(patternString);
+			Matcher matcher = pattern.matcher(outputLines.get(i));
+			if (matcher.find() == true)
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean verifyOutPutIsNot(String patternString) {
+		for (int i = 0; i < outputLines.size(); i++) {
+			Pattern pattern = Pattern.compile(patternString);
+			Matcher matcher = pattern.matcher(outputLines.get(i));
+			if (matcher.find() == true)
+				return false;
+		}
+		return true;
+	}
 
 	private boolean isTempelPlusUnsigned = false;
 
 	/** Initiate verify via TempelPlus, match 0 valid signatures **/
 	boolean tempelPlusUnsigned() {
 		for (int i = 0; i < outputLines.size(); i++) {
-			Pattern pattern = Pattern.compile("TempelPlus found 0 valid signatures and \\d invalid signatures");
+			String tpOut = "TempelPlus found 0 valid (or matching) signatures and 0 invalid (or not matching) signatures";
+			Pattern pattern = Pattern.compile(tpOut);
+			
 			Matcher matcher = pattern.matcher(outputLines.get(i));
-			if (matcher.find() == true)
+			if (matcher.find() == true || tpOut.equals(outputLines.get(i)))
 				isTempelPlusUnsigned = true;
 		}
 		return isTempelPlusUnsigned;
 	}
-
+	
 	public boolean isTempelPlusHelp = false;
 
 	/** Initiate -help via TempelPlus **/

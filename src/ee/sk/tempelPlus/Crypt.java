@@ -46,11 +46,14 @@ public class Crypt extends TempelPlus {
          List<String> files = parseParams(args);
 
          List<File> workFiles = getFiles(files, new ArrayList<File>());
+         List<String> workFileOutputPaths = getRelativeOutputPaths(workFiles, args[1]);
+         
          if (workFiles.size() == 0) {
+        	log.info("No files to encrypt in: " + args[1]);
             printHelp();
             System.exit(1);
          }
-
+         
          List<File> certs = getFiles(certPaths, new ArrayList<File>());
          
          // Check whether certificates are present
@@ -69,9 +72,10 @@ public class Crypt extends TempelPlus {
          
          setOutPut(args[1]);
          //Kontrollime failide olemasolu
-         for(File file:workFiles){
-            check(outputFolder + File.separator + file.getName(), "cdoc");
-         }
+//         for(File file:workFiles){
+//            check(outputFolder + File.separator + file.getName(), "cdoc");
+//         }
+         
          askQuestion("Are you sure you want to encrypt " + workFiles.size() + " files? Y\\N");
 
          MimetypesFileTypeMap m = new MimetypesFileTypeMap();
@@ -221,8 +225,16 @@ public class Crypt extends TempelPlus {
 
             // Krüpteerime. Valikud on ainult EncryptedData.DENC_COMPRESS_ALLWAYS
             // ja EncryptedData.DENC_COMPRESS_NEVER
-            String outFileName = makeName(outputFolder + File.separator + file.getName(), "cdoc");
+            String outFileName = makeName(outputFolder + File.separator + workFileOutputPaths.get(i-1) + File.separator + file.getName(), "cdoc");
             File outFile = new File(outFileName);
+            
+            File parent = new File(outFile.getParent());
+            
+            if(!parent.exists() && !parent.mkdirs()){
+            	log.error("Could not create a directory: " + outFile.getAbsolutePath());
+            	exit(1);
+            }
+            
             cdoc.encryptStream(new FileInputStream(f2), new FileOutputStream(outFile), EncryptedData.DENC_COMPRESS_BEST_EFFORT);
 
             f2.delete();

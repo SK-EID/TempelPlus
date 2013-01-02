@@ -18,9 +18,15 @@ import ee.sk.utils.ConfigManager;
 public class Verify extends TempelPlus{
 
    public Logger log = Logger.getLogger(Verify.class);
-
+   private String verificationCN = null;
+   
+   private boolean verificationSuccess = true;
+   
    public boolean run(String[] args) throws DigiDocException {
-      try
+	   
+	  parseParams(args);
+      
+	  try
       {
 //         for (int i = 0; i < args.length; i++)
 //         {
@@ -48,7 +54,11 @@ public class Verify extends TempelPlus{
        int unValidSignatures=0;
        for(File file:workFiles)
        {
-          log.info("Verifying file "+i+" of "+workFiles.size()+". Currently verifying '"+file.getName()+"'");
+    	  if(printFileCount){
+    		  log.info("Verifying file "+i+" of "+workFiles.size());
+    	  }
+    	  
+          log.info("Currently verifying '"+file.getName()+"'");
           DigiDocFactory digFac = ConfigManager.instance().getDigiDocFactory();
           SignedDoc sdoc = digFac.readSignedDoc(file.getAbsolutePath());
           sdoc.verify(true, true);
@@ -64,20 +74,8 @@ public class Verify extends TempelPlus{
              Signature s = sdoc.getSignature(j);//TODO who is signer??
              ArrayList<DigiDocException> errors = s.verify(sdoc, true, true);
 
-//             System.out.println("Verification error are:");
-//             for(DigiDocException e:errors)
-//             {
-//                System.out.println(e);
-//             }
-
              ArrayList<DigiDocException> errors2 = new ArrayList<DigiDocException>();
              errors2.addAll(s.validate());
-
-//             System.out.println("Validation error are:");
-//             for(DigiDocException e:errors2)
-//             {
-//                System.out.println(e);
-//             }
 
              errors2.addAll(errors);
 
@@ -86,33 +84,81 @@ public class Verify extends TempelPlus{
                 status = "ERROR";
              }
              log.info("Signature "+s.getId()+", Signer: "+Util.getCNField(s)+", SigningTime: "+Config.sdf.format(s.getSignedProperties().getSigningTime())+", "+status);
-             if(errors2==null||errors2.isEmpty())
-                validSignatures++;
-             else{
+             
+             
+             
+//             if(errors2==null||errors2.isEmpty())
+//                validSignatures++;
+//             else{
+             if(errors2!=null && !errors2.isEmpty()){
                 log.debug("Invalid signature. Errors are:");
                 for(DigiDocException e:errors2){
                    log.debug(e);
                 }
                 unValidSignatures++;
              }
+             
+             // If everything was OK until this point, now check '-cn'
+             if(verificationCN != null && verificationCN.length() > 0){
+            	 if(matchCNs(verificationCN, Util.getCNField(s))){
+            		 validSignatures++;
+            	 }else{
+            		 log.info("Verification unsuccessful.");
+            		 log.info("Container signer's common name was expected to be (specified by user): '" + verificationCN + "', but was: '" + Util.getCNField(s) + "'");
+            		 unValidSignatures++;
+            		 verificationSuccess = false;
+            	 }
+             
+             }
+             
+             
           }
           i++;
-          log.info("Done");
+          
+          if(printFileCount){
+        	  log.info("Done"); 
+          }
        }
        log.info(workFiles.size()+" documents verified successfully");
-       log.info("TempelPlus found "+validSignatures+" valid signatures and "+unValidSignatures+" invalid signatures");
+       log.info("TempelPlus found "+validSignatures+" valid (or matching) signatures and "+unValidSignatures+" invalid (or not matching) signatures");
       }catch (Exception e){
     	 verifyError(e, "Verification failed!", true);
-         
-         return true;
+         //return verificationSuccess;
       }
-      return false;
+      return verificationSuccess;
    }
-
+   
+   public void parseParams(String[] args) {
+		int commonVars = 2;
+		
+		if (args.length >= commonVars) {// lisaargumendid
+			for (int i = commonVars; i < args.length; i++) {
+				
+				if(args[i].equalsIgnoreCase(COMMON_NAME)){
+					
+					if (i + 1 < args.length) {
+						ArgsParams params = ConcatParams(args, i + 1);
+						verificationCN = params.Params;
+						i = params.i - 1;
+					}else{
+						log.info("'-cn' parameter was used, but no certificate owner's common name specified");
+						printHelp();
+						exit(0);
+					}	
+				}
+			}
+		} else {
+			printHelp();
+			exit(0);
+		}
+	}
+   
    protected void printHelp(){
       log.info("Verifies signature(s) of all given files");
       log.info("usage:");
-      log.info("TempelPlus verify <folder or file>");
+      log.info("TempelPlus verify <folder or file> <additional parameters>");
+      
+      log.info("Additional (optional) params:");
+      log.info("-cn <common name>		certificate owner's common name");
    }
-
 }

@@ -39,12 +39,15 @@ public class Remove extends TempelPlus
          }
 
          List<File> workFiles = getFilesWithExt(args[2], new ArrayList<File>());
+         List<String> workFileOutputPaths = getRelativeOutputPaths(workFiles, args[2]);
+         
          if(workFiles.size()==0)
          {
             log.error("No files with extension "+Config.getProp(Config.FORMAT)+" specified!");
             printHelp();
             System.exit(1);
          }
+         
          parseParams(args);
 
          boolean OutputNull = outputFolder == null;
@@ -52,10 +55,11 @@ public class Remove extends TempelPlus
          setOutPut(args[2]);
 
          //Kontrollime failide olemasolu
-         for(File file:workFiles)
-         {
-            check(outputFolder + File.separator + file.getName(), Config.getProps().getProperty(Config.FORMAT), !OutputNull);
-         }
+//         for(File file:workFiles)
+//         {
+//            check(outputFolder + File.separator + file.getName(), Config.getProps().getProperty(Config.FORMAT), !OutputNull);
+//         }
+         
          askQuestion("Are you sure you want to remove signatures from "+workFiles.size()+" files? Y\\N");
          DigiDocFactory digFac = ConfigManager.instance().getDigiDocFactory();
          int i=1;
@@ -75,9 +79,10 @@ public class Remove extends TempelPlus
                   countSignatures++;
                }
             }
-            i++;
+            
             log.info("Done");
-            sdoc.writeToFile(new File(makeName((outputFolder==null?"":outputFolder)+File.separator+file.getName(),Config.getProps().getProperty(Config.FORMAT))));
+            sdoc.writeToFile(new File(makeName((outputFolder==null?"":outputFolder)+File.separator + workFileOutputPaths.get(i-1) + File.separator + file.getName(),Config.getProps().getProperty(Config.FORMAT))));
+            i++;
          }
          log.info(workFiles.size()+" documents were handled successfully. "+countSignatures+" signatures removed");
       }

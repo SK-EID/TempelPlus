@@ -1,0 +1,15 @@
+DigiDoc Java library 3.6 release notes
+--------------------------------------
+
+Changes compared to ver 2.3.19
+- Changes according ETSI Plug test results
+- Changes according Cross library (jdigidoc & libdigidoc & libdigidocpp) test results (DDOC, CDOC, BDOC)
+- Removed DETACHED, DDOC 1.4 support
+- CDOC padding improvements
+- Updated documentation in doc folder SK-CDD-PRG-GUIDE
+- Updated BDOC support with SHA-2 family hashes
+- Support for software based private keys
+- Changes in API behaviour verify() and Siganture.verify() mehthods
+- Added new API method decryptStreamUsingTokenType
+- Versioning switched to same schema (3.5, 3.6 ...) as other middleware components
+

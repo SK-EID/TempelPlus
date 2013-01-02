@@ -36,6 +36,7 @@ public class Pack extends TempelPlus {
             exit(1);
          }
          List<File> workFiles = getFiles(args[1], new ArrayList<File>());
+         
          if(addFilesDir!=null&&addFilesDir.size()!=0){
             addFiles=new ArrayList<File>();
             for(String folder:addFilesDir)

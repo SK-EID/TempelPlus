@@ -39,6 +39,7 @@ public class Decrypt extends TempelPlus {
 	private static final String FAIL = "Decryption of the files failed!";
 	private static String[] decryptionTargetDirectories;
 	private static List<File> workFiles;
+	private List<String> workFileOutputPaths;
 	SignatureFactory sigFac = null;
 
 	public boolean run(String[] args) throws DigiDocException {
@@ -68,8 +69,7 @@ public class Decrypt extends TempelPlus {
 				cmnExtDir = false;
 			}
 			
-			if(!cmnExtDir)
-				updateDecryptTargetDirs(workFiles);
+			updateDecryptTargetDirs(workFiles, workFileOutputPaths);
 
 			askQuestion("Are you sure you want to decrypt " + workFiles.size() + " files, encrypted to cdoc? Y\\N");
 			pin = pinInsertion();
@@ -125,8 +125,7 @@ public class Decrypt extends TempelPlus {
 				// in follow mode workfiles arraylist may be out of sync
 				if (follow) {
 					updateWorkFiles(args);
-					if(!cmnExtDir)
-						updateDecryptTargetDirs(workFiles);
+					updateDecryptTargetDirs(workFiles, workFileOutputPaths);
 				}
 				//for (File file : workFiles) {
 				for (int forC = 0; forC < workFiles.size(); forC++) {
@@ -202,22 +201,27 @@ public class Decrypt extends TempelPlus {
 
 					//tekitame kaustanime
 					File folder = null;
+					
 					if(!cmnExtDir){
 						folder = new File(makeNameWithDot(decryptionTargetDirectories[forC], "")); //kaustanimi lähtefaili nimega (.cdoc lõpuga)
-						if (!folder.mkdir()) {
-							log.error("Creation of directory '" + folder.getAbsolutePath() + "' failed!");
-							exit(1);
-						}
+					}else{
+						folder = new File(decryptionTargetDirectories[forC], ""); //kaustanimi lähtefaili nimega (.cdoc lõpuga)	
 					}
+					
+					
+					
+					if (!folder.exists() && !folder.mkdirs()) {
+						log.error("Creation of directory '" + folder.getAbsolutePath() + "' failed!");
+						exit(1);
+					}
+
 					//pakime lahti seesolnud ddoc'i
 					SignedDoc sdoc = digFac.readSignedDoc(f2.getAbsolutePath());
 					File dataf = null;
 					for (int j = 0; j < sdoc.countDataFiles(); j++) {
 						DataFile f = sdoc.getDataFile(j);
-						if(!cmnExtDir)
-							dataf = new File(makeName(folder.getAbsolutePath() + File.separator + f.getFileName(), f.getFileName().substring(f.getFileName().lastIndexOf(".") + 1)));
-						else
-							dataf = new File(makeName(outputFolder + File.separator + f.getFileName(), f.getFileName().substring(f.getFileName().lastIndexOf(".") + 1)));
+						dataf = new File(makeName(folder.getAbsolutePath() + File.separator + f.getFileName(), f.getFileName().substring(f.getFileName().lastIndexOf(".") + 1)));
+						
 						new FileOutputStream(dataf).write(f.getBodyAsData());
 						//f.cleanupDfCache();//laseme temp failid maha
 						count++;
@@ -286,22 +290,28 @@ public class Decrypt extends TempelPlus {
 			exit(1);
 		}
 		for (int i = 0; i < tokens.length; i++) {
-			if (tokens[i].getCertName().equals(recipient)) {
+			
+			
+//			if (tokens[i].getCertName().equals(recipient)) {
+//				return i;
+//			} else if (recipient.contains(",")) { //If user added organization to recipient, like AS Sertifitseerimiskeskus or ID-CARD
+//				if (tokens[i].getCertName().equals(recipient.substring(0, recipient.lastIndexOf(",")))) {
+//					return i;
+//				}
+//			}
+			if(matchCNs(tokens[i].getCertName(), recipient)){
 				return i;
-			} else if (recipient.contains(",")) { //If user added organization to recipient, like AS Sertifitseerimiskeskus or ID-CARD
-				if (tokens[i].getCertName().equals(recipient.substring(0, recipient.lastIndexOf(",")))) {
-					return i;
-				}
 			}
 		}
 		return -1;
 	}
 
 	private void updateWorkFiles(String[] args) {
-		workFiles = getFilesWithExt(args[1], new ArrayList<File>(), "cdoc");
+		workFiles = getFilesWithExt(args[1], new ArrayList<File>(), Config.getProps().getProperty(Config.CRYPT));
+		workFileOutputPaths = getRelativeOutputPaths(workFiles, args[1]);
 	}
 
-	private void updateDecryptTargetDirs(List<File> workFiles) throws TempelPlusException {
+	private void updateDecryptTargetDirs(List<File> workFiles, List<String> relativeOutputPaths) throws TempelPlusException {
 		decryptionTargetDirectories = new String[workFiles.size()];
 		//for(File file:workFiles){
 		for (int i = 0; i < workFiles.size(); i++) {
@@ -310,8 +320,14 @@ public class Decrypt extends TempelPlus {
 			//EncryptedData m_cdoc = dencFac.readEncryptedData(file.getAbsolutePath());
 
 			//File folder = new File(outputFolder+File.separator+m_cdoc.findPropertyByName(EncryptedData.ENCPROP_FILENAME).getContent());
-
-			decryptionTargetDirectories[i] = makeNameWithDot(outputFolder + File.separator + file.getName()/*.replace("." + Config.getProps().getProperty(Config.CRYPT), "")*/, "");
+			
+			if(!cmnExtDir){
+				decryptionTargetDirectories[i] = makeNameWithDot(outputFolder + relativeOutputPaths.get(i) + File.separator + file.getName()/*.replace("." + Config.getProps().getProperty(Config.CRYPT), "")*/, "");
+			}else{
+				decryptionTargetDirectories[i] = outputFolder + relativeOutputPaths.get(i);
+			}
+			
+			
 
 //            File folder = new File(decryptionTargetDirectories[i]);
 //            

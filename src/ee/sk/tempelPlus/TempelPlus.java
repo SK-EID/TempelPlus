@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -32,7 +33,7 @@ import ee.sk.utils.ConfigManager;
 
 
 /** Main program
- * Tempel+ starts, then signing, verifying, decrypting, extracting etc process is executed, program ends.
+ * Tempel+ starts -> signing, verifying, decrypting, extracting etc process is executed -> program ends.
  * @author Erik Kaju
  *
  */
@@ -49,9 +50,10 @@ public abstract class TempelPlus {
 
 	public boolean remInput = false;
 	public boolean follow = false;
+	
 	public File outputFolder;
 	private static String configFile = null;
-	public static final String version = "v1.1.1";
+	public static final String version = "v1.2.0";
 	static long start = 0;
 
 	private static Logger log = null;
@@ -60,19 +62,30 @@ public abstract class TempelPlus {
 	public final String REM_INPUT = "-remove_input";
 	public final String FOLLOW = "-follow";
 	public final String PARAMPIN = "-pin";
+	public final String EXTRACTPARAM_VERIFY = "-verify";
+	public final String COMMON_NAME = "-cn";
 	public final String SLOT = "-slot";
 	public final String LABEL = "-label";
 	public final String CMN_EXT_DIR = "-cmn_ext_dir";
 	
 	public boolean usingOutPutFolder = false;
 	public boolean usingSlotAndLabel = false;
-	public boolean cmnExtDir = false; // if common extraction directory is used for decryption/extraction
+	protected boolean cmnExtDir = false; // if common extraction directory is used for decryption/extraction
 	boolean firstRun = true;
 	
 	String pin;
 	public String commandParameterPin = null;
 	public long commandParameterSlot = -1;
 	public String commandParameterLabel = null;
+	
+	protected boolean printFileCount = true; //At the moment implemented and used when verifying. If false 'Verifying file n of n' is not printed
+	
+	protected File currentFile = null;
+	protected String outPutFileName = null;
+	
+	public void setPrintFileCount(boolean printFileCount) {
+		this.printFileCount = printFileCount;
+	}
 
 	public static void main(String[] args) throws DigiDocException
 	{
@@ -867,5 +880,90 @@ public abstract class TempelPlus {
 		} catch (Exception e2) {
 			log.error("Could not write a stacktrace to logfile: " + logFile);
 		} 
+	}
+	
+	protected boolean matchCNs(String argumentCN, String digitalCN){
+		
+		if (digitalCN.equals(argumentCN)) {
+			return true;
+		} else if (argumentCN.contains(",")) { //If user added organization to recipient, like AS Sertifitseerimiskeskus or ID-CARD
+			if (digitalCN.equals(argumentCN.substring(0, argumentCN.lastIndexOf(",")))) {
+				return true;
+			}
+		} else if (digitalCN.contains(",")){
+			if (argumentCN.equals(digitalCN.substring(0, digitalCN.lastIndexOf(",")))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected void checkFollowArgs(boolean followArg, File outputFolderArg, boolean remInputArg) {
+		if (followArg) {
+			if (outputFolderArg == null && remInputArg) {
+				log.error("Must specify output folder when using follow!");
+				exit(1);
+			} else if (outputFolderArg == null) {
+				log.error("Must specify output folder and remove input when using follow!");
+				exit(1);
+			} else if (!remInputArg) {
+				log.error("Must specify remove input when using follow!");
+				exit(1);
+			}
+		}
+	}
+	
+	
+	protected List<String> getRelativeOutputPaths(List<File> workFiles, String relativePath) {
+		List<String> res = new ArrayList<String>();
+		
+		for (File file : workFiles) {
+			
+			File userInput = new File(relativePath);
+			
+			if(userInput.isDirectory()){
+				res.add(file.getParent().replace(userInput.getAbsolutePath(), ""));
+			}else{
+				res.add(file.getAbsolutePath().replace(userInput.getAbsolutePath(), ""));
+			}
+			 
+		}
+		return res;
+	}
+	
+	/** Returns true if folder exists, creates folder and return true if folder did not exist, returns false if creation of the folder was unsuccessful
+	 * @param fileDir - File object pointing to directory that should exist
+	 * @return true if this directory is usable
+	 */
+	protected boolean ensureDirectoryExistence(File fileDir){
+		return ensureDirectoryExistence(fileDir, false);
+	}
+	
+	/** Returns true if folder exists, creates folder and return true if folder did not exist, returns false if creation of the folder was unsuccessful
+	 * @param dirPath - String path pointing of directory that should exist
+	 * @return true if this directory is usable
+	 */
+	protected boolean ensureDirectoryExistence(String dirPath){
+		
+		File location = new File(dirPath);
+		return ensureDirectoryExistence(location, false);
+	}
+	
+	// Common logic for protected 'ensureDirectoryExistance' functions
+	private boolean ensureDirectoryExistence(File fileDir, boolean recheck){
+		
+		if(fileDir.exists()){
+			return true;
+		}else{
+			
+			if(!recheck){
+				fileDir.mkdirs();
+				
+				// Recheck recursively if now it is ok, most probaly should return true
+				return ensureDirectoryExistence(fileDir, true);
+			}else{
+				return false;
+			}
+		}
 	}
 }
