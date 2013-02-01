@@ -1,6 +1,11 @@
 @echo off
-echo Starting TempelPlus from Windows Batch
+
+cd %~dp0
 SET JAVA="C:\Program Files (x86)\Java\jre6\bin\java"
+
+echo Starting TempelPlus from Windows Batch
+echo Using Java: %JAVA%
+
 SET firstNineParameters= %1 %2 %3 %4 %5 %6 %7 %8 %9
 
 REM Shift 10 times
