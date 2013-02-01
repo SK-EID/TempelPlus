@@ -81,7 +81,9 @@ public class Remove extends TempelPlus
             }
             
             log.info("Done");
-            sdoc.writeToFile(new File(makeName((outputFolder==null?"":outputFolder)+File.separator + workFileOutputPaths.get(i-1) + File.separator + file.getName(),Config.getProps().getProperty(Config.FORMAT))));
+            File writeFile = new File(makeName((outputFolder==null?"":outputFolder)+File.separator + workFileOutputPaths.get(i-1) + File.separator + file.getName(),Config.getProps().getProperty(Config.FORMAT)));
+            new File(writeFile.getParent()).mkdirs();
+            sdoc.writeToFile(writeFile);
             i++;
          }
          log.info(workFiles.size()+" documents were handled successfully. "+countSignatures+" signatures removed");

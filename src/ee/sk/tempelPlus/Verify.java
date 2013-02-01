@@ -87,31 +87,28 @@ public class Verify extends TempelPlus{
              
              
              
-//             if(errors2==null||errors2.isEmpty())
-//                validSignatures++;
-//             else{
              if(errors2!=null && !errors2.isEmpty()){
                 log.debug("Invalid signature. Errors are:");
                 for(DigiDocException e:errors2){
                    log.debug(e);
                 }
                 unValidSignatures++;
-             }
+             }else{       	 
+            	 // If everything was OK until this point, now check '-cn'
+                 if(verificationCN != null && verificationCN.length() > 0){
+                	 if(matchCNs(verificationCN, Util.getCNField(s))){
+                		 validSignatures++;
+                	 }else{
+                		 log.info("Verification unsuccessful.");
+                		 log.info("Container signer's common name was expected to be (specified by user): '" + verificationCN + "', but was: '" + Util.getCNField(s) + "'");
+                		 unValidSignatures++;
+                		 verificationSuccess = false;
+                	 }
+                 }else{
+                	 validSignatures++;
+                 }
              
-             // If everything was OK until this point, now check '-cn'
-             if(verificationCN != null && verificationCN.length() > 0){
-            	 if(matchCNs(verificationCN, Util.getCNField(s))){
-            		 validSignatures++;
-            	 }else{
-            		 log.info("Verification unsuccessful.");
-            		 log.info("Container signer's common name was expected to be (specified by user): '" + verificationCN + "', but was: '" + Util.getCNField(s) + "'");
-            		 unValidSignatures++;
-            		 verificationSuccess = false;
-            	 }
-             
-             }
-             
-             
+             } 
           }
           i++;
           

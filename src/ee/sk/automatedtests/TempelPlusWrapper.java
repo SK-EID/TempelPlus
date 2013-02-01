@@ -543,8 +543,10 @@ public class TempelPlusWrapper {
 		for (int i = 0; i < outputLines.size(); i++) {
 			Pattern pattern = Pattern.compile(patternString);
 			Matcher matcher = pattern.matcher(outputLines.get(i));
-			if (matcher.find() == true)
+			if (matcher.find() == true){
+				Log.write("Automated test found undesirable pattern in output: \"" + patternString + "\". Line: \"" + outputLines.get(i), "WARN");
 				return false;
+			}
 		}
 		return true;
 	}

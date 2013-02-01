@@ -902,6 +902,7 @@ public class TempelPlusWrapperTest {
 		if(tempelPlusWrapper.verifyValidity(fileIn)
 		   && tempelPlusWrapper.verifyOutPut("Verifying file \\d of \\d")
 		   && tempelPlusWrapper.verifyOutPut("OK")
+		   && tempelPlusWrapper.verifyOutPutIsNot(", but was:")
 		   ){
 			TP40 = true;
 		}
@@ -959,7 +960,6 @@ public class TempelPlusWrapperTest {
 	
 	/*
 	 * TP-43: Verification with extra -verify argument, incorrect CN
-	 * 
 	 * Pass if extraction uses -verify argument with wrong value and validation does not succeed
 	 */
 	@Test

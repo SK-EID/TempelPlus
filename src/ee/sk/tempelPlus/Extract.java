@@ -146,6 +146,7 @@ public class Extract extends TempelPlus {
 				if (follow) {
 					Thread.sleep(1000);
 					workFiles = getFiles(args[1], new ArrayList<File>());
+					workFileOutputPaths = getRelativeOutputPaths(workFiles, args[1]);
 					i = 1;
 				} else {
 					break;
