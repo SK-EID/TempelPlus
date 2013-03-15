@@ -947,7 +947,7 @@ public class TempelPlusWrapperTest {
 		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", cn, "-output_folder", outputFolder});
 		
 		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
-		   &&tempelPlusWrapper.verifyOutPut("\\d documents verified successfully")
+		   &&tempelPlusWrapper.verifyOutPut("\\d documents handled successfully")
 		   && tempelPlusWrapper.verifyOutPutIsNot("Verification unsuccessful.")
 		   && tempelPlusWrapper.verifyOutPut(", OK")
 		   ){
@@ -976,7 +976,7 @@ public class TempelPlusWrapperTest {
 		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", "\"WRONG RECIPIENT\"", "-output_folder", outputFolder});
 		
 		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
-		   &&tempelPlusWrapper.verifyOutPut("\\d documents verified successfully")
+		   &&tempelPlusWrapper.verifyOutPut("\\d documents handled successfully")
 		   && tempelPlusWrapper.verifyOutPut("Verification unsuccessful.")
 		   ){
 			TP43 = true;
@@ -1005,7 +1005,7 @@ public class TempelPlusWrapperTest {
 		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", "-output_folder", outputFolder});
 		
 		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
-		   &&tempelPlusWrapper.verifyOutPut("\\d documents verified successfully")
+		   &&tempelPlusWrapper.verifyOutPut("\\d documents handled successfully")
 		   && tempelPlusWrapper.verifyOutPutIsNot("Verification unsuccessful.")
 		   && tempelPlusWrapper.verifyOutPut(", OK")
 		   ){

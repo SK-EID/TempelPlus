@@ -20,12 +20,11 @@ public class Verify extends TempelPlus{
    public Logger log = Logger.getLogger(Verify.class);
    private String verificationCN = null;
    
-   private boolean verificationSuccess = true;
-   
    public boolean run(String[] args) throws DigiDocException {
-	   
+	  boolean verificationSuccess = true; 
+	  boolean foundCN = false;
 	  parseParams(args);
-      
+	 
 	  try
       {
 //         for (int i = 0; i < args.length; i++)
@@ -68,6 +67,15 @@ public class Verify extends TempelPlus{
              DataFile d = sdoc.getDataFile(j);
              log.info("Datafile "+d.getId()+": filename: "+d.getFileName()+", mime: "+d.getMimeType());
           }
+          if(sdoc.countSignatures() < 1) {
+        	  log.info("Found no signatures from container");
+              if(printFileCount){
+            	  log.info("Done\n"); 
+              }
+        	  verificationSuccess = false;
+        	  i++;
+        	  continue;
+          }
           log.info("Found "+sdoc.countSignatures()+" signatures:");
           for (int j=0;j<sdoc.countSignatures();j++)
           {
@@ -93,16 +101,19 @@ public class Verify extends TempelPlus{
                    log.debug(e);
                 }
                 unValidSignatures++;
+                verificationSuccess = false;
+                log.info("\tVerification unsuccessful. Invalid signature!");                
              }else{       	 
             	 // If everything was OK until this point, now check '-cn'
                  if(verificationCN != null && verificationCN.length() > 0){
                 	 if(matchCNs(verificationCN, Util.getCNField(s))){
                 		 validSignatures++;
+                		 foundCN = true;
                 	 }else{
-                		 log.info("Verification unsuccessful.");
-                		 log.info("Container signer's common name was expected to be (specified by user): '" + verificationCN + "', but was: '" + Util.getCNField(s) + "'");
+                		 log.info("\tVerification unsuccessful. Signer's common name was expected to be (specified by user): '" + verificationCN + "', but was: '" + Util.getCNField(s) + "'");
+//                		 log.info("Container signer's common name was expected to be (specified by user): '" + verificationCN + "', but was: '" + Util.getCNField(s) + "'");
                 		 unValidSignatures++;
-                		 verificationSuccess = false;
+                 		 verificationSuccess = false;
                 	 }
                  }else{
                 	 validSignatures++;
@@ -113,15 +124,17 @@ public class Verify extends TempelPlus{
           i++;
           
           if(printFileCount){
-        	  log.info("Done"); 
+        	  log.info("Done\n"); 
           }
        }
-       log.info(workFiles.size()+" documents verified successfully");
+       log.info(workFiles.size()+" documents handled successfully");
        log.info("TempelPlus found "+validSignatures+" valid (or matching) signatures and "+unValidSignatures+" invalid (or not matching) signatures");
       }catch (Exception e){
     	 verifyError(e, "Verification failed!", true);
          //return verificationSuccess;
       }
+	  if (verificationCN != null && verificationCN.length() > 0 && foundCN) 
+		  return true;
       return verificationSuccess;
    }
    

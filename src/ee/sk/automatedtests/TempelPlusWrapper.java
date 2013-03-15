@@ -521,7 +521,7 @@ public class TempelPlusWrapper {
 	/** Initiate verify via TempelPlus **/
 	public boolean tempelPlusVerify() {
 		for (int i = 0; i < outputLines.size(); i++) {
-			Pattern pattern = Pattern.compile("\\d documents verified successfully");
+			Pattern pattern = Pattern.compile("\\d documents handled successfully");
 			Matcher matcher = pattern.matcher(outputLines.get(i));
 			if (matcher.find() == true)
 				isTempelPlusVerified = true;

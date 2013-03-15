@@ -153,7 +153,7 @@ public class Extract extends TempelPlus {
 				}
 
 			}
-			log.info(workFiles.size() + " documents where handled successfully. " + countFiles + " files extracted");
+			log.info("\n" + workFiles.size() + " documents were handled successfully. " + countFiles + " files extracted");
 			
 		} catch (Exception e) {
 			
