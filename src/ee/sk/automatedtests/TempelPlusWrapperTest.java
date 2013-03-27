@@ -32,7 +32,7 @@ public class TempelPlusWrapperTest {
 	
 	public boolean TP1_1, TP1_2, TP9, TP10_14_13, TP11, TP12, TP15, TP16 , TP17, 
 	TP18, TP19, TP20, TP21, TP22, TP23, TP24, TP25, TP26_28, TP27_29, TP30, TP36, 
-	TP37, TP38, TP39, TP40, TP41, TP42, TP43, TP44, TP45 = false;
+	TP37, TP38, TP39, TP40, TP41, TP42, TP43, TP44, TP45, TP97, TP98, TP99 = false;
 	
 	@Before
 	public void before(){
@@ -1111,7 +1111,104 @@ public class TempelPlusWrapperTest {
 		assertTrue(TP37);
 	}
 	
+	/*
+	 * TP-97: Calculate checksum of input file, create container from input file
+	 * via JDigiDoc, validate container via JDigiDoc, extract input file from
+	 * container via TempelPlus, calculate checksum of output file, compare
+	 * checksums.
+	 * 
+	 * Return true if container is valid and checksums match.
+	 */
+	@Test
+	public final void testTP97() throws Exception {
+		String folder = testDataPath + "TP-97" + slash;
+		String outputFolder = folder + "output_folder" + slash;
+		
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc"});
+		tempelPlusWrapper.deleteFile(outputFolder);
+		
+		tempelPlusWrapper.outputFolderExist(outputFolder);
+		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		String container = tempelPlusWrapper.getContainer(fileIn);
+		File fileName = new File(fileIn);
+		String noExtFName = fileName.getName();
+		String newFileName = noExtFName.substring(0, noExtFName.lastIndexOf("."));
+		newFileName = newFileName.concat(".ddoc" + slash);
+		String fileOut = outputFolder + newFileName + fileName.getName();
+		tempelPlusWrapper.runTempelPlus(new String[]{"sign", fileIn});
+		// if folder doesn't exist
+		tempelPlusWrapper.outputFolderExist(outputFolder);
+		tempelPlusWrapper.runTempelPlus(new String[]{"extract", container, "-verify", "-output_folder", outputFolder});
+
+		TP97 = tempelPlusWrapper.verifyChecksums(fileIn, fileOut, container);
+		assertTrue(TP97);
+		tempelPlusWrapper.deleteFile(container);
+		tempelPlusWrapper.deleteFile(outputFolder);
+	}
 	
+	/*
+	 * TP-98: #1053 - tempelplus v1.2.0 extract -verify laseb läbi ilma allkirjadeta konteineri
+	 * sh TempelPlus32.sh extract /home/skisotest/io/tryb/in/ -output_folder /home/skisotest/io/tryb/in -follow -remove_input -verify "TESTNUMBER,SEITSMES,14212128025"
+	 * Pass test if datafile is not extracted
+	 */
+	@Test
+	public final void testTP98() throws Exception  {
+		
+		String folder = testDataPath + "TP-98_99" + slash;
+		String outputFolder = folder + "output" + slash;
+		tempelPlusWrapper.deleteFile(outputFolder);
+
+		if(!new File(outputFolder).mkdir()){
+			throw new Exception("Could not create test output directory: " + outputFolder);
+		}
+		
+		tempelPlusWrapper.runTempelPlus(new String[]{"extract", folder, "-output_folder", outputFolder, "-verify", "TESTNUMBER,SEITSMES,14212128025"});
+		
+		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
+				   && tempelPlusWrapper.verifyOutPut("\\d documents handled successfully")
+				   && tempelPlusWrapper.verifyOutPutIsNot("Verification successful.")
+				   && tempelPlusWrapper.verifyOutPut("Found no signatures from container")
+				   && tempelPlusWrapper.verifyOutPutIsNot(", OK")
+				   && tempelPlusWrapper.verifyOutPut("0 files extracted")
+				   ){
+					TP98 = true;
+				}
+				
+		tempelPlusWrapper.deleteFile(outputFolder);
+		assertTrue(TP98);
+	}
+	
+	/*
+	 * TP-99: #1053 - tempelplus v1.2.0 extract -verify laseb läbi ilma allkirjadeta konteineri
+	 * sh TempelPlus32.sh extract /home/skisotest/io/tryb/temp_sign/ -output_folder /home/skisotest/io/tryb/in -follow -remove_input -verify
+	 * Pass test if datafile is not extracted  
+	 */
+	@Test
+	public final void testTP99() throws Exception  {
+		
+		String folder = testDataPath + "TP-98_99" + slash;
+		String outputFolder = folder + "output" + slash;
+		tempelPlusWrapper.deleteFile(outputFolder);
+
+		if(!new File(outputFolder).mkdir()){
+			throw new Exception("Could not create test output directory: " + outputFolder);
+		}
+		
+		tempelPlusWrapper.runTempelPlus(new String[]{"extract", folder, "-output_folder", outputFolder, "-verify"});
+		
+		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
+				   && tempelPlusWrapper.verifyOutPut("\\d documents handled successfully")
+				   && tempelPlusWrapper.verifyOutPutIsNot("Verification successful.")
+				   && tempelPlusWrapper.verifyOutPut("Found no signatures from container")
+				   && tempelPlusWrapper.verifyOutPutIsNot(", OK")
+				   && tempelPlusWrapper.verifyOutPut("0 files extracted")
+				   ){
+					TP99 = true;
+				}
+				
+		tempelPlusWrapper.deleteFile(outputFolder);
+		assertTrue(TP99);
+	}
 	
 	
 }
