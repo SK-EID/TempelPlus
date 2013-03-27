@@ -15,7 +15,7 @@ import org.junit.Test;
  * TempelPlus tests
  * 
  * 
- * @author Jï¿½rgen Hannus, Erik Kaju
+ * @author JÄ¼Ã¦Â½rgen Hannus, Erik Kaju
  */
 
 public class TempelPlusWrapperTest {
@@ -1147,7 +1147,7 @@ public class TempelPlusWrapperTest {
 	}
 	
 	/*
-	 * TP-98: #1053 - tempelplus v1.2.0 extract -verify laseb läbi ilma allkirjadeta konteineri
+	 * TP-98: #1053 - tempelplus v1.2.0 extract -verify laseb l2bi ilma allkirjadeta konteineri
 	 * sh TempelPlus32.sh extract /home/skisotest/io/tryb/in/ -output_folder /home/skisotest/io/tryb/in -follow -remove_input -verify "TESTNUMBER,SEITSMES,14212128025"
 	 * Pass test if datafile is not extracted
 	 */
@@ -1179,7 +1179,7 @@ public class TempelPlusWrapperTest {
 	}
 	
 	/*
-	 * TP-99: #1053 - tempelplus v1.2.0 extract -verify laseb läbi ilma allkirjadeta konteineri
+	 * TP-99: #1053 - tempelplus v1.2.0 extract -verify laseb l2bi ilma allkirjadeta konteineri
 	 * sh TempelPlus32.sh extract /home/skisotest/io/tryb/temp_sign/ -output_folder /home/skisotest/io/tryb/in -follow -remove_input -verify
 	 * Pass test if datafile is not extracted  
 	 */
