@@ -144,6 +144,6 @@
 	</target>
 	
 	<target name="test-with-coverage" depends="clean,compile,instrument,run-tests-with-cobertura" description="Test TempelPlus with Cobertura Statistics">
-		<cobertura-report format="html" srcdir="src" destdir="cobertura"/>
+		<cobertura-report format="xml" srcdir="src" destdir="cobertura"/>
 	</target>
 </project>
