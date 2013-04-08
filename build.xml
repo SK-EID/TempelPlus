@@ -18,14 +18,17 @@
 		</fileset>
 	</path>
 	
+	<taskdef classpathref="libraries" resource="tasks.properties" />
 	<target name="clean" description="Clean up" >
 		<delete dir="./bin"/>
 		<delete dir="${build.dir}"/>
 		<delete file="Run.jar"/>
 		<delete file="TempelPlus.jar"/>
+		<delete file="cobertura.ser"/>
 		<delete dir="${reports}"/>
 		<delete dir="${run.build.dir}"/>
 		<delete dir="${test.build.dir}"/>
+		<delete dir="cobertura"/>
 	</target>
 
 	<target name="compile" depends="run" description="Compile TempelPlus">
@@ -94,5 +97,53 @@
 			</fileset>
 			<report format="frames" todir="${reports}\html\"/>
 		</junitreport>
+	</target>
+	<target name="instrument" description="Add descriptions to classes">
+	  <cobertura-instrument todir="${build.dir}/instrumented-classes">
+		<fileset dir="build/classes">
+		  <include name="**/*.class"/>
+		</fileset>
+	  </cobertura-instrument>
+	</target>
+	
+	<target name="run-tests-with-cobertura" depends="" description="Run TempelPlus Test Suite with Cobertura" >
+		
+		<jar basedir="${build.dir}/instrumented-classes" destfile="${build.dir}/TempelPlus.jar"/>
+		<copy file="${build.dir}/TempelPlus.jar" todir="."/>
+
+		<mkdir dir="reports"/>
+		<mkdir dir="reports/raw"/>
+		<junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes" maxmemory="1024m">
+			<sysproperty key="net.sourceforge.cobertura.datafile" file="cobertura.ser" />
+			<classpath location="${build.dir}/instrumented-classes"/>
+			<classpath location="cobertura.jar"/>
+			<classpath>
+				<pathelement path="${build.dir}/classes"/>
+				<fileset dir="lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="JDigiDoc/lib">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="JDigiDoc">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>			
+		
+ 		  <batchtest fork="yes" todir="${reports}/raw/">
+		  	<formatter type="xml"/>
+		    <fileset dir="${src}">
+		       <include name="**/*Test.java"/>
+		    </fileset>
+		  </batchtest>
+		</junit>	
+	</target>
+	
+	<target name="report-coverage" description="Test TempelPlus with Cobertura Statistics">
+		<cobertura-report format="html" srcdir="src" destdir="cobertura"/>
+	</target>
+	
+	<target name="test-with-coverage" depends="clean,compile,instrument,run-tests-with-cobertura" description="Test TempelPlus with Cobertura Statistics">
+		<cobertura-report format="html" srcdir="src" destdir="cobertura"/>
 	</target>
 </project>
