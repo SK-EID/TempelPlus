@@ -654,10 +654,11 @@ public class TempelPlusWrapperTest {
 		
 		String fileIn = tempelPlusWrapper.getInputFile(folder);
 		
-		tempelPlusWrapper.deleteFile(fileIn.split("[.]")[0]+".ddoc");
+//		tempelPlusWrapper.deleteFile(fileIn.split("[.]")[0]+".ddoc");
+		tempelPlusWrapper.deleteFile(fileIn.substring(0, fileIn.lastIndexOf(".")) + ".ddoc");
 		
 		String container = tempelPlusWrapper.getEncryptedContainer(fileIn);
-		String contFolder = fileIn.split("[.]")[0] + ".cdoc(1)"; // expected output folder is with .cdoc ending
+		String contFolder = fileIn.substring(0, fileIn.lastIndexOf(".")) + ".cdoc(1)"; // expected output folder is with .cdoc ending
 		
 		tempelPlusWrapper.deleteFile(contFolder);
 		

@@ -24,9 +24,9 @@ public class Run {
       File libDir = new File(jDocLoc+File.separator+"lib"+File.separator);
       ArrayList<URL> urls = new ArrayList<URL>();
       urls.add(new File(jDocLoc+File.separator).toURI().toURL());
-      urls.add(new File(jDocLoc+File.separator+"jdigidoc-3.7.0.381.jar").toURI().toURL());  // Change this, if migration to another JDigiDoc lib is performed
+      urls.add(new File(jDocLoc+File.separator+"jdigidoc-3.8.1-709.jar").toURI().toURL());  // Change this, if migration to another JDigiDoc lib is performed
       urls.add(new File("TempelPlus.jar").toURI().toURL());
-      urls.add(new File(jDocLoc+File.separator+"jdcerts.jar").toURI().toURL());
+      urls.add(new File(jDocLoc+File.separator+"esteidtestcerts.jar").toURI().toURL());
       String bcProv = Config.getProp(Config.BC_PROV);
       if(libDir.isDirectory()){
     	  System.out.println("Using JDigiDoc library: " + jDocLoc);

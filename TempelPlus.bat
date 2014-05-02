@@ -1,7 +1,7 @@
 @echo off
 
 cd %~dp0
-SET JAVA="C:\Program Files (x86)\Java\jre6\bin\java"
+SET JAVA="C:\Program Files (x86)\Java\jre7\bin\java"
 
 echo Starting TempelPlus from Windows Batch
 echo Using Java: %JAVA%
