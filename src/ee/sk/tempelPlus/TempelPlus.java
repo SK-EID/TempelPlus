@@ -53,7 +53,7 @@ public abstract class TempelPlus {
 	
 	public File outputFolder;
 	private static String configFile = null;
-	public static final String version = "v1.2.1";
+	public static final String version = "v1.3.0";
 	static long start = 0;
 
 	private static Logger log = null;
@@ -265,7 +265,9 @@ public abstract class TempelPlus {
 	 * @return
 	 */
 	public List<File> getFilesWithExt(String dir, List<File> files) {
-		return getFilesWithExt(dir, files, Config.getProp(Config.FORMAT));
+		getFilesWithExt(dir, files, "ddoc");
+		getFilesWithExt(dir, files, "bdoc"); 
+		return files;
 	}
 
 	/**
@@ -456,6 +458,25 @@ public abstract class TempelPlus {
 		if (f.exists()) {
 			if (f.isDirectory()) {
 				log.error("File already exists:" + f.getAbsolutePath());
+				exit(1);
+			} else {
+				log.error("File already exists:" + f.getAbsolutePath());
+				exit(1);
+			}
+		}
+	}
+	
+	/**
+	 * Check if file exists
+	 * @param name File's absolute path and name
+	 * @throws TempelPlusException
+	 */
+	public void check(String nameWithExtension) throws TempelPlusException {
+		
+		File f = new File(nameWithExtension);
+		if (f.exists()) {
+			if (f.isDirectory()) {
+				log.error("Directory already exists:" + f.getAbsolutePath());
 				exit(1);
 			} else {
 				log.error("File already exists:" + f.getAbsolutePath());

@@ -25,6 +25,6 @@
 	<classpathentry kind="lib" path="JDigiDoc/lib/sunjce_provider.jar"/>
 	<classpathentry kind="lib" path="JDigiDoc/lib/sunpkcs11.jar"/>
 	<classpathentry kind="lib" path="JDigiDoc/esteidtestcerts.jar"/>
-	<classpathentry kind="lib" path="JDigiDoc/jdigidoc-3.8.1-709.jar"/>
+	<classpathentry kind="lib" path="JDigiDoc/jdigidoc-3.8.1-709-TempelPlus.jar" sourcepath="JDigiDoc/jdigidoc-3.8.1-709-TempelPlus-source.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
