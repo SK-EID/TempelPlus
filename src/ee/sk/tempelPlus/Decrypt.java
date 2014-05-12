@@ -119,7 +119,7 @@ public class Decrypt extends TempelPlus {
 //         }
 //         Util.checkCertificate(cert);// Kontrollime sertifikaati
 			DigiDocFactory digFac = ConfigManager.instance().getDigiDocFactory();
-
+			int decryptedCount = 0;
 			while (true) {
 
 				// in follow mode workfiles arraylist may be out of sync
@@ -153,13 +153,23 @@ public class Decrypt extends TempelPlus {
 						recipient = deviceTokenRecipients.get(decrypt_token_index);
 					}
 
+					// Check if the file is CDOC 2.0
+					EncryptedDataParser dencFac =  ConfigManager.instance().getEncryptedDataParser();
+					EncryptedData cdoc = dencFac.readEncryptedData(file.getAbsolutePath());
+					if(cdoc.findPropertyByName("DocumentFormat").getContent().contains("2.0")) {
+						log.info("Skipping file " + i + " of " + workFiles.size() + ". File '" + file.getName() + "' is in CDOC 2.0 format and is not currently supported!");
+						i++;
+						log.info("Done");
+						continue;
+					}			
+					
 					log.info("Decrypting file " + i + " of " + workFiles.size() + ". Currently processing '" + file.getName() + "'");
 					FileInputStream fis = new FileInputStream(file);
-					File f2 = File.createTempFile(file.getName().substring(0, file.getName().lastIndexOf('.')) + "___", Config.getProps().getProperty(Config.FORMAT));
+					File f2 = File.createTempFile(file.getName().substring(0, file.getName().lastIndexOf('.')) + "___", "ddoc"); // praegu toetatud ainult ddoc formaat (CDOC1.0)
 					f2.deleteOnExit();
 					FileOutputStream fos = new FileOutputStream(f2);
 					EncryptedStreamParser streamParser = ConfigManager.instance().getEncryptedStreamParser();
-					
+
 					//decryption
 					if (usingSlotAndLabel) { //HSM
 						int token_slot = (int) decrypt_token.getSlot();
@@ -229,6 +239,7 @@ public class Decrypt extends TempelPlus {
 					i++;
 					f2.delete();
 					log.info("Done: " + dataf.getAbsolutePath());
+					decryptedCount++;
 					if (follow || remInput) {
 						log.info("trying to delete file:" + file.getName());
 						file.delete();
@@ -242,7 +253,7 @@ public class Decrypt extends TempelPlus {
 					break;
 				}
 			}
-			log.info(workFiles.size() + " files decrypted successfully! " + count + " files created.");
+			log.info(decryptedCount + " files decrypted successfully! " + count + " files created.");
 		} catch (Exception e) {
 			//log.error("Decryption of the files failed!", e);
 			verifyError(e, "Decryption of the files failed!", false);
@@ -401,7 +412,6 @@ public class Decrypt extends TempelPlus {
 
 		EncryptedDataParser dencFac = ConfigManager.instance().getEncryptedDataParser();
 		EncryptedData m_cdoc = dencFac.readEncryptedData(cdocFile.getAbsolutePath());
-
 		int numberOfRecipientsOfCdoc = m_cdoc.getNumKeys();
 
 		for (int i = 0; i < numberOfRecipientsOfCdoc; i++)

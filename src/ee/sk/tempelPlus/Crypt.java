@@ -119,7 +119,14 @@ public class Crypt extends TempelPlus {
                recipient = SignedDoc.getCommonName(recvCert.getSubjectDN().getName());
             r++;
          }
+         int encryptedCount = 0;
          for (File file : workFiles) {
+        	if(file.getName().endsWith(".bdoc")) {
+        		log.info("Skipping file " + i + " of " + workFiles.size() + ". Currently processing '" + file.getName() + "' but encrypting BDOC files (in CDOC 2.0 format) is currently not supported!");
+        		i++;
+        		log.info("Done");
+        		continue;
+        	}
             log.info("Encrypting file " + i + " of " + workFiles.size() + ". Currently processing '" + file.getName() + "'");
             String mimeType = m.getContentType(file);
 //            SignedDoc sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
@@ -155,7 +162,7 @@ public class Crypt extends TempelPlus {
             SignedDoc sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
             //String mimeType = m.getContentType(file);
             sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
-            File f2 = File.createTempFile(file.getName().substring(0,file.getName().lastIndexOf('.'))+"___", Config.getProps().getProperty(Config.FORMAT));
+            File f2 = File.createTempFile(file.getName().substring(0,file.getName().lastIndexOf('.'))+"___", "ddoc"); // CDOC 1.0 - alati ddoc konteinerisse krüpteerimise.
             f2.deleteOnExit();
             sdoc.writeToFile(f2);
 
@@ -240,9 +247,10 @@ public class Crypt extends TempelPlus {
             f2.delete();
 
             i++;
+            encryptedCount++;
             log.info("Done");
          }
-         log.info(workFiles.size() + " files encrypted successfully!.");
+         log.info(encryptedCount + " files encrypted successfully!");
       } catch (Exception e) {
     	 verifyError(e, "Encryption of the files failed!", true);
          //log.error("Encryption of the files failed!", e);
