@@ -185,10 +185,17 @@ public class Sign extends TempelPlus {
 
 					log.info("Signing file " + i + " of " + workFiles.size() + ". Currently signing '" + file.getName() + "'");
 					if (!isDigiDoc(file)) {
-						sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
-						log.info("File is not ddoc, converting..");
-						String mimeType = m.getContentType(file);
-						sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
+						log.info("File is not DigiDoc, converting..");
+						String mimeType = m.getContentType(file); //TODO: milline mime-type panna? application/octet-stream?
+						if(Config.getProp(Config.FORMAT).equalsIgnoreCase("bdoc") || Config.getProp(Config.FORMAT) == null) { //if the format in configuration is set as bdoc or not set at all
+							sdoc = new SignedDoc(SignedDoc.FORMAT_BDOC, SignedDoc.BDOC_VERSION_2_1);
+							sdoc.setProfile(SignedDoc.BDOC_PROFILE_TM);
+							sdoc.addDataFile(file, mimeType, DataFile.CONTENT_BINARY);
+						} else { // if the format is ddoc 
+							sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
+							sdoc.setProfile(SignedDoc.BDOC_PROFILE_TM);
+							sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
+						}					
 					} else {
 						if (digFac == null)
 							digFac = ConfigManager.instance().getDigiDocFactory();
@@ -251,7 +258,14 @@ public class Sign extends TempelPlus {
 					}
 					
 					if (usingOutPutFolder || (!usingOutPutFolder && !isDigiDoc(file))) {
-						outPutFileName = makeName(outPutFileName, Config.getProps().getProperty(Config.FORMAT));
+						if(!isDigiDoc(file)) {
+							if (Config.getProps().getProperty(Config.FORMAT) != null)
+								outPutFileName = makeName(outPutFileName, Config.getProps().getProperty(Config.FORMAT)); // use the default format from config file
+							else 
+								outPutFileName = makeName(outPutFileName, "bdoc"); // if there is no value set in config file then use bdoc
+						} else {
+							outPutFileName = makeName(outPutFileName);
+						}
 						log.info("Creating new container: " + outPutFileName);
 					} else {
 						log.info("Adding signature to container: " + outPutFileName);

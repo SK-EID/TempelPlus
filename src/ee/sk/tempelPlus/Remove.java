@@ -43,7 +43,7 @@ public class Remove extends TempelPlus
          
          if(workFiles.size()==0)
          {
-            log.error("No files with extension "+Config.getProp(Config.FORMAT)+" specified!");
+            log.error("No DigiDoc files with extension ddoc or bdoc found!");
             printHelp();
             System.exit(1);
          }
@@ -76,12 +76,13 @@ public class Remove extends TempelPlus
                if(args[1].equals("ALL")||Util.getCNField(s).contains(args[1]))
                {
                   sdoc.removeSignature(j);
+                  log.info("Signature removed.");
                   countSignatures++;
                }
             }
             
             log.info("Done");
-            File writeFile = new File(makeName((outputFolder==null?"":outputFolder)+File.separator + workFileOutputPaths.get(i-1) + File.separator + file.getName(),Config.getProps().getProperty(Config.FORMAT)));
+            File writeFile = new File(makeName((outputFolder==null?"":outputFolder)+File.separator + workFileOutputPaths.get(i-1) + File.separator + file.getName()));
             new File(writeFile.getParent()).mkdirs();
             sdoc.writeToFile(writeFile);
             i++;

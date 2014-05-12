@@ -47,37 +47,54 @@ public class Pack extends TempelPlus {
             System.exit(1);
          }
          setOutPut(args[1]);
+         
+         String format = Config.getProps().getProperty(Config.FORMAT);
+         if(format == null) 
+        	 format = "bdoc"; // vaikimisi formaat
+         
          //Kontrollime failide olemasolu
          for(File file:workFiles){
-            if(!isDigiDoc(file)){
-               check(outputFolder + File.separator + file.getName(), Config.getProps().getProperty(Config.FORMAT));
-            }else{
-               check(outputFolder + File.separator + file.getName().substring(0,file.getName().lastIndexOf('.')), Config.getProps().getProperty(Config.FORMAT));
-            }
+//            if(!isDigiDoc(file)){
+               check(outputFolder + File.separator + file.getName().substring(0,file.getName().lastIndexOf('.')) + "." + format); // if there is also a "." in the file's name then do not remove, Config.getProps().getProperty(Config.FORMAT));
+//            }else{
+//               check(outputFolder + File.separator + file.getName().substring(0,file.getName().lastIndexOf('.')), Config.getProps().getProperty(Config.FORMAT));
+//            }
          }
          askQuestion("Are you sure you want to create " + workFiles.size() + " new files? Y\\N ");
          MimetypesFileTypeMap m = new MimetypesFileTypeMap();
          int i = 1;
+         SignedDoc sdoc = null;
          for (File file : workFiles) {
             log.info("Creating file " + i + " of " + workFiles.size() + ". Currently processing '"
                   + file.getName() + "'");
-            SignedDoc sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
-            String mimeType = m.getContentType(file);
-            sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
+            String mimeType = m.getContentType(file); //TODO: milline mime-type panna? application/octet-stream?
+            if(format.equalsIgnoreCase("ddoc")) {
+            	sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);        
+            	sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
+            } else {
+            	sdoc = new SignedDoc(SignedDoc.FORMAT_BDOC, SignedDoc.BDOC_VERSION_2_1);        
+            	sdoc.addDataFile(file, mimeType, DataFile.CONTENT_BINARY);
+            }
+            sdoc.setProfile(SignedDoc.BDOC_PROFILE_TM); //TODO: kui allkirju ei ole, siis ei ole vaja seada?
+            
             if(addFiles!=null){
                for(File addF:addFiles){
                   log.info("Adding additional file "+addF.getName());
                   mimeType = m.getContentType(file);
-                  sdoc.addDataFile(addF, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
+                  if(format.equalsIgnoreCase("ddoc")) {
+                	  sdoc.addDataFile(addF, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
+                  } else {
+                	  sdoc.addDataFile(addF, mimeType, DataFile.CONTENT_BINARY);
+                  }
                }
             }
             i++;
 //            log.info(file.getAbsolutePath());
-            if(!isDigiDoc(file)){
-               sdoc.writeToFile(new File(makeName(outputFolder+File.separator+file.getName(), Config.getProps().getProperty(Config.FORMAT))));
-            }else{
-               sdoc.writeToFile(new File(makeName(outputFolder+File.separator+file.getName().substring(0,file.getName().lastIndexOf('.')), Config.getProps().getProperty(Config.FORMAT))));
-            }
+//            if(!isDigiDoc(file)){
+//               sdoc.writeToFile(new File(makeName(outputFolder+File.separator+file.getName(), Config.getProps().getProperty(Config.FORMAT))));
+//            }else{
+               sdoc.writeToFile(new File(makeName(outputFolder+File.separator+file.getName().substring(0,file.getName().lastIndexOf('.')) + "." + format)));
+//            }
             log.info("Done");
          }
          log.info(workFiles.size() + " documents created successfully.");

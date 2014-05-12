@@ -2,6 +2,7 @@ package ee.sk.tempelPlus;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,13 +88,14 @@ public class Extract extends TempelPlus {
 						if (!verify.run(verificationArgs)) {
 
 							if (follow) {
-								String fault = "DDOC verification failed.";
+								String fault = "DigiDoc file's verification failed.";
 								if (verificationCN != null) {
 									fault += "Verification parameter CN: '" + verificationCN + "'";
 								}
 								throw new Exception(fault);
 							} else {
 								log.info("Skipping container: " + fileToExctract);
+								i++;
 								continue;
 							}
 						}
@@ -129,8 +131,15 @@ public class Extract extends TempelPlus {
 							outPutFileName = makeName(outputFolder + File.separator + f.getFileName(), f.getFileName().substring(f.getFileName().lastIndexOf(".") + 1));
 						}
 
-						dataf = new File(outPutFileName);
-						new FileOutputStream(dataf).write(f.getBodyAsData());
+						FileOutputStream fos = new FileOutputStream(outPutFileName);
+						InputStream is = f.getBodyAsStream();
+						byte[] data = new byte[4096];
+                		int n = 0;
+                		while((n = is.read(data)) > 0) {
+                			fos.write(data, 0, n);
+                		}
+                		fos.close();
+                		is.close();
 						countFiles++;
 					}
 
