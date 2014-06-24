@@ -152,20 +152,20 @@ public class Decrypt extends TempelPlus {
 						log.info("Will use token with index: " + decrypt_token_index + ". Recipient: " + deviceTokenRecipients.get(decrypt_token_index));
 						recipient = deviceTokenRecipients.get(decrypt_token_index);
 					}
-
-					// Check if the file is CDOC 2.0
-					EncryptedDataParser dencFac =  ConfigManager.instance().getEncryptedDataParser();
-					EncryptedData cdoc = dencFac.readEncryptedData(file.getAbsolutePath());
-					if(cdoc.findPropertyByName("DocumentFormat").getContent().contains("2.0")) {
-						log.info("Skipping file " + i + " of " + workFiles.size() + ". File '" + file.getName() + "' is in CDOC 2.0 format and is not currently supported!");
-						i++;
-						log.info("Done");
-						continue;
-					}			
+									
+// Kontrollida, kas krüpteeritud fail oli DDOC konteineris?
+//					EncryptedDataParser dencFac =  ConfigManager.instance().getEncryptedDataParser();
+//					EncryptedData cdoc = dencFac.readEncryptedData(file.getAbsolutePath());
+//					if(cdoc.findPropertyByName("orig_file") == null) {
+//						log.info("Skipping file " + i + " of " + workFiles.size() + ". File '" + file.getName() + "' is not in DDOC container and decrypting is currently not supported!");
+//						i++;
+//						log.info("Done");
+//						continue;
+//					}			
 					
 					log.info("Decrypting file " + i + " of " + workFiles.size() + ". Currently processing '" + file.getName() + "'");
 					FileInputStream fis = new FileInputStream(file);
-					File f2 = File.createTempFile(file.getName().substring(0, file.getName().lastIndexOf('.')) + "___", "ddoc"); // praegu toetatud ainult ddoc formaat (CDOC1.0)
+					File f2 = File.createTempFile(file.getName().substring(0, file.getName().lastIndexOf('.')) + "___", "ddoc"); // currently only supported decrypting files that are in DDOC container
 					f2.deleteOnExit();
 					FileOutputStream fos = new FileOutputStream(f2);
 					EncryptedStreamParser streamParser = ConfigManager.instance().getEncryptedStreamParser();
