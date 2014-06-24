@@ -122,7 +122,7 @@ public class Crypt extends TempelPlus {
          int encryptedCount = 0;
          for (File file : workFiles) {
         	if(file.getName().endsWith(".bdoc")) {
-        		log.info("Skipping file " + i + " of " + workFiles.size() + ". Currently processing '" + file.getName() + "' but encrypting BDOC files (in CDOC 2.0 format) is currently not supported!");
+        		log.info("Skipping file " + i + " of " + workFiles.size() + ". Currently processing '" + file.getName() + "' - encrypting BDOC files is currently not supported!"); // not recommended to put BDOC into DDOC container
         		i++;
         		log.info("Done");
         		continue;
@@ -162,7 +162,7 @@ public class Crypt extends TempelPlus {
             SignedDoc sdoc = new SignedDoc(SignedDoc.FORMAT_DIGIDOC_XML, SignedDoc.VERSION_1_3);
             //String mimeType = m.getContentType(file);
             sdoc.addDataFile(file, mimeType, DataFile.CONTENT_EMBEDDED_BASE64);
-            File f2 = File.createTempFile(file.getName().substring(0,file.getName().lastIndexOf('.'))+"___", "ddoc"); // CDOC 1.0 - alati ddoc konteinerisse krüpteerimise.
+            File f2 = File.createTempFile(file.getName().substring(0,file.getName().lastIndexOf('.'))+"___", "ddoc"); // always add to DDOC container before encryption, needed for Crypto v3.8 and earlier
             f2.deleteOnExit();
             sdoc.writeToFile(f2);
 
