@@ -21,6 +21,8 @@ import java.util.regex.Pattern;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import org.objenesis.strategy.StdInstantiatorStrategy;
+
 import ee.sk.digidoc.factory.DigiDocFactory;
 import ee.sk.digidoc.DataFile;
 import ee.sk.digidoc.DigiDocException;
@@ -39,10 +41,22 @@ public class TempelPlusWrapper {
 	private static SignedDoc sdoc = null;
 	private static BufferedReader stdout, stderr;
 	static Vector<String> outputLines;
-
 	String config_file, slash, tempelPlusPath, testDataPath, recipient, cert1, cert2, cert3, bits, cn;
 
 	boolean printChecksumData, windows;
+	
+	public enum TestMode {
+		ddoc(".ddoc"), bdoc(".bdoc");
+		
+		private String extension;
+		private TestMode(String extension){
+			this.extension = extension;
+		}
+		public String getExtension(){
+			return this.extension;
+		}
+	};
+	private TestMode testMode;
 
 	// Synchronize exceptions between main and sub-threads
 	private volatile Exception exc = null;
@@ -50,6 +64,10 @@ public class TempelPlusWrapper {
 	//private String tpVersion;
 
 	public void main(String[] args) throws IOException {
+	}
+	
+	public TestMode getTestMode(){
+		return this.testMode;
 	}
 
 	/** Wrapper constructor - loads configuration from properties file **/
@@ -91,6 +109,17 @@ public class TempelPlusWrapper {
 		bits = tpwConfigFile.getProperty("TEMPELPLUS_LINUX_BIT");
 
 		printChecksumData = Boolean.valueOf(tpwConfigFile.getProperty("PRINT_CHECKSUMDATA"));
+		
+		String testModeConfValue = tpwConfigFile.getProperty("TEST_MODE");
+		if(testModeConfValue == null){
+			throw new RuntimeException("Property \"TEST_MODE\" is missing in Configuration file: " + configFile);
+		}else if(testModeConfValue.equals("ddoc")){
+			testMode = TestMode.ddoc;
+		}else if(testModeConfValue.equals("bdoc")){
+			testMode = TestMode.bdoc;
+		}else{
+			throw new RuntimeException("Property \"TEST_MODE\" has unsupported value in Configuration file: " + configFile);
+		}
 	}
 	
 	private boolean tempelPlusLines = false;
@@ -172,7 +201,7 @@ public class TempelPlusWrapper {
 			// InputStream in = process.getInputStream();
 			OutputStream out = process.getOutputStream();
 
-			new BufferedWriter(new OutputStreamWriter(out));
+			BufferedWriter bwo = new BufferedWriter(new OutputStreamWriter(out));
 
 			Thread readingOutput = executeReadTPLinesThread();
 			
@@ -192,7 +221,7 @@ public class TempelPlusWrapper {
 			dataFolder = null;
 			readingOutput.interrupt();
 			
-			executeReadErrorsThread();
+			Thread startedStdErrThread = executeReadErrorsThread();
 			
 
 			OutputStream os = process.getOutputStream();
@@ -202,9 +231,16 @@ public class TempelPlusWrapper {
 			Log.write("Waiting for process...");
 			Log.nextLine();
 			if(dataFolder == null){
-			process.waitFor();
+				process.waitFor();
 			}
+			out.flush();
+			out.close();
+			bwo.flush();
+			bwo.close();
+			is.close();
 			process.destroy();
+			startedStdErrThread.interrupt();
+			r.gc();
 			Log.write("Done.");
 		} catch (Exception e) {
 			Log.write("Exception: " + e, true);
@@ -226,7 +262,7 @@ public class TempelPlusWrapper {
 		return executableStringArray;
 	}
 
-	private void executeReadErrorsThread() {
+	private Thread executeReadErrorsThread() {
 		// Error messages
 		Thread stderrThread = new Thread() {
 			public void run() {
@@ -249,6 +285,7 @@ public class TempelPlusWrapper {
 			}
 		}; // End of error messages
 		stderrThread.start();
+		return stderrThread;
 	}
 
 	private void checkThreadException(Thread thread, Integer secondsToKillThread) throws Exception {
@@ -374,10 +411,15 @@ public class TempelPlusWrapper {
 			DigiDocFactory digFac = ConfigManager.instance().getDigiDocFactory();
 			sdoc = digFac.readSignedDoc(container);
 			FileOutputStream fos = new FileOutputStream(fileOut);
-			byte[] xml = sdoc.getDataFile(0).getBodyAsData();
-			fos.write(xml);
+			InputStream is = sdoc.getDataFile(0).getBodyAsStream();
+			byte[] data = new byte[4096];
+    		int n = 0;
+    		while((n = is.read(data)) > 0) {
+    			fos.write(data, 0, n);
+    		}
 			fos.flush();
 			fos.close();
+			is.close();
 			System.out.println("File extracted from container!");
 		} catch (DigiDocException dde) {
 			System.out.println("DigiDoc error: " + dde);
@@ -398,7 +440,7 @@ public class TempelPlusWrapper {
 			File filesFolder = new File(folder);
 			String[] files = filesFolder.list();
 			for (int i = 0; i < files.length; i++) {
-				if (files[i].endsWith(".ddoc")) {
+				if (files[i].endsWith(testMode.getExtension())) {
 					sdoc = digFac.readSignedDoc(folder + files[i]);
 					String fileName = files[i];
 					// get file name without extension
@@ -408,11 +450,20 @@ public class TempelPlusWrapper {
 					String newExtension = containerFileName.substring(fileName.lastIndexOf("."));
 					// get file from container and give new name
 					FileOutputStream fos = new FileOutputStream(folder + fileNameExtensionless + "_out" + newExtension);
-					byte[] xml = sdoc.getDataFile(0).getBodyAsData();
-					// taking file from container
-					fos.write(xml);
+//					byte[] xml = sdoc.getDataFile(0).getBodyAsData();
+//					// taking file from container
+//					fos.write(xml);
+//					fos.flush();
+//					fos.close();
+					InputStream is = sdoc.getDataFile(0).getBodyAsStream();
+					byte[] data = new byte[4096];
+		    		int n = 0;
+		    		while((n = is.read(data)) > 0) {
+		    			fos.write(data, 0, n);
+		    		}
 					fos.flush();
 					fos.close();
+					is.close();
 				}
 			}
 			System.out.println("Files extracted from container!");
@@ -440,7 +491,7 @@ public class TempelPlusWrapper {
 			File addedFilesFolder = new File(addedFolder);
 			String[] addedFiles = addedFilesFolder.list();
 			for (int i = 0; i < files.length; i++) {
-				if (files[i].endsWith(".ddoc")) {
+				if (files[i].endsWith(testMode.getExtension())) {
 					for (int j = 0; j <= addedFiles.length; j++) {
 						sdoc = digFac.readSignedDoc(folder + files[i]);
 						// container name
@@ -450,11 +501,16 @@ public class TempelPlusWrapper {
 						String oldExtension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
 						// get file from container and give new name
 						FileOutputStream fos = new FileOutputStream(folder + fileNameNoExt + "_out" + oldExtension);
-						byte[] xml = sdoc.getDataFile(j).getBodyAsData();
-						// extract file from container
-						fos.write(xml);
+//						// extract file from container
+						InputStream is = sdoc.getDataFile(j).getBodyAsStream();
+						byte[] data = new byte[4096];
+			    		int n = 0;
+			    		while((n = is.read(data)) > 0) {
+			    			fos.write(data, 0, n);
+			    		}
 						fos.flush();
 						fos.close();
+						is.close();
 					}
 				}
 			}
@@ -501,7 +557,7 @@ public class TempelPlusWrapper {
 		String[] files = filesFolder.list();
 
 		for (int i = 0; i <= files.length - 1; i++) {
-			if (files[i].endsWith(".ddoc")) {
+			if (files[i].endsWith(testMode.getExtension())) {
 				sdoc = digiFac.readSignedDoc(folder + files[i]);
 				// if no errors occur via JDigiDoc
 				ArrayList<?> errs = sdoc.validate(true);
@@ -793,6 +849,14 @@ public class TempelPlusWrapper {
 	/** Delete file 
 	 * @throws IOException **/
 	public boolean deleteFile(String sFilePath) throws IOException {
+		
+		try {
+			System.gc();
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		File oFile = new File(sFilePath);
 
 		if (oFile.isDirectory()) {
@@ -808,21 +872,33 @@ public class TempelPlusWrapper {
 //		out.flush();
 //        out.close();
 //        out = null;
-        System.gc();
-        
 		return oFile.delete();
 	}
-
-	/** Get file from folder **/
+	
+	public String getInputFile(String folder, String extension) {
+		return getInputFileFromFolder(folder, extension); 
+	}
+	
 	public String getInputFile(String folder) {
+		return getInputFileFromFolder(folder, null);
+	}
+	
+	/** Get file from folder **/
+	private String getInputFileFromFolder(String folder, String extension) {
 		File filesFolder = new File(folder);
 		String[] files = filesFolder.list();
 		String fileIn = null;
 		for (int i = 0; i < files.length; i++) {
-			if (new File(folder + files[i]).isDirectory() && !new File(folder + files[i]).getName().contains(".cdoc"))
+			if (new File(folder + files[i]).isDirectory() && !new File(folder + files[i]).getName().contains(".cdoc")) {
 				continue;
-			else
-				fileIn = folder + files[i];
+			} else {
+				if(extension == null || (extension != null && files[i].endsWith(extension))){
+					fileIn = folder + files[i];
+				}else{
+					continue;
+				}
+			}
+				
 		}
 		return fileIn;
 	}
@@ -919,7 +995,7 @@ public class TempelPlusWrapper {
 
 	/** Get container name from inputFile **/
 	public String getContainer(String inputFile) {
-		String container = getNameOnly(inputFile) + ".ddoc";
+		String container = getNameOnly(inputFile) + testMode.getExtension();
 		return container;
 	}
 	

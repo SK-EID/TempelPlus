@@ -3,13 +3,18 @@ package ee.sk.automatedtests;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import ee.sk.automatedtests.TempelPlusWrapper.TestMode;
 /**
  * 
  * TempelPlus tests
@@ -97,7 +102,7 @@ public class TempelPlusWrapperTest {
 		
 		String folder = testDataPath + "TP-9" + slash;
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc"}, 1);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc", ".bdoc"}, 1);
 		
 		String fileIn = tempelPlusWrapper.getInputFile(folder);
 		String fileOut = tempelPlusWrapper.getOutputFile(fileIn);
@@ -124,11 +129,11 @@ public class TempelPlusWrapperTest {
 	 * Return true if containers are valid and checksums match.
 	 */
 	@Test
-	public final void testTP10_14_13()  throws Exception {
+	public final void testTP0_14_13()  throws Exception {
 		
 		String folder = testDataPath + "TP-10_14_13" + slash;
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc"}, 2);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc", ".bdoc"}, 2);
 		
 		tempelPlusWrapper.runTempelPlus(new String[]{"sign", folder});
 		tempelPlusWrapper.containerRemoveFiles(folder);
@@ -136,7 +141,7 @@ public class TempelPlusWrapperTest {
 		
 		assertTrue(TP10_14_13);
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc"}, 2);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc", ".bdoc"}, 2);
 	}
 
 	/*
@@ -151,7 +156,7 @@ public class TempelPlusWrapperTest {
 	public final void testTP11() throws Exception {
 		String folder = testDataPath + "TP-11" + slash;
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc"}, 1);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc", ".bdoc"}, 1);
 		
 		String fileIn = tempelPlusWrapper.getInputFile(folder);
 		String fileOut = tempelPlusWrapper.getOutputFile(fileIn);
@@ -178,7 +183,7 @@ public class TempelPlusWrapperTest {
 	@Test
 	public final void testTP12() throws Exception {
 		String folder = testDataPath + "TP-12" + slash;
-		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc"}, 1);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{"_out", ".ddoc", ".bdoc"}, 1);
 		
 		String fileIn = tempelPlusWrapper.getInputFile(folder);
 		String fileOut = tempelPlusWrapper.getOutputFile(fileIn);
@@ -201,10 +206,15 @@ public class TempelPlusWrapperTest {
 	@Test
 	public final void testTP15() throws Exception {
 		String folder = testDataPath + "TP-15" + slash;
-		String fileIn = tempelPlusWrapper.getInputFile(folder);
-		tempelPlusWrapper.runTempelPlus(new String[]{"verify", fileIn});
-		
-		TP15 = tempelPlusWrapper.verifyValidity(fileIn);
+		//Take inputfile with extension according to TEST_MODE testing parameter
+		String fileIn = tempelPlusWrapper.getInputFile(folder, tempelPlusWrapper.getTestMode().getExtension());
+		if (fileIn == null){
+			System.out.println("TestData is missing input file with extension \"" + tempelPlusWrapper.getTestMode().getExtension() + "\" in " + folder);
+		}else{
+			tempelPlusWrapper.runTempelPlus(new String[]{"verify", fileIn});
+			TP15 = tempelPlusWrapper.verifyValidity(fileIn);
+		}
+
 		
 		assertTrue(TP15);
 	}
@@ -218,7 +228,14 @@ public class TempelPlusWrapperTest {
 	 */
 	@Test
 	public final void testTP16() throws Exception {
+		
 		String folder = testDataPath + "TP-16" + slash;
+		if(tempelPlusWrapper.getTestMode() == TestMode.ddoc) {
+			folder += "ddoc" + slash;
+		} else if (tempelPlusWrapper.getTestMode() == TestMode.bdoc){
+			folder += "bdoc" + slash;
+		}
+		
 		tempelPlusWrapper.runTempelPlus(new String[]{"verify", folder});
 		boolean isDigiTempelValid = tempelPlusWrapper.tempelPlusVerify();
 		System.out.println(isDigiTempelValid);
@@ -253,8 +270,8 @@ public class TempelPlusWrapperTest {
 		String outputFolder = folder + "output_folder" + slash;
 		tempelPlusWrapper.outputFolderExist(outputFolder);
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc"});
-		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc"}, 0);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", ".bdoc"});
+		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc", ".bdoc"}, 0);
 		
 		String fileIn = tempelPlusWrapper.getInputFile(folder);
 		tempelPlusWrapper.runTempelPlus(new String[]{"sign", fileIn});
@@ -282,8 +299,8 @@ public class TempelPlusWrapperTest {
 		String outputFolder = folder + "output_folder" + slash;
 		tempelPlusWrapper.outputFolderExist(outputFolder);
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc"});
-		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc"}, 0);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", ".bdoc"});
+		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc", ".bdoc"}, 0);
 		
 		tempelPlusWrapper.runTempelPlus(new String[]{"sign", folder});
 		tempelPlusWrapper.runTempelPlus(new String[]{"remove", "ALL", folder, "-output_folder", outputFolder});
@@ -294,7 +311,7 @@ public class TempelPlusWrapperTest {
 		File filesFolder = new File(folder);
 		String[] files = filesFolder.list();
 		for (int i = 0; i < files.length; i++) {
-			if (files[i].endsWith(".ddoc"))
+			if (files[i].endsWith(".ddoc") || files[i].endsWith(".bdoc"))
 				tempelPlusWrapper.deleteFile(folder + files[i]);
 			else if (files[i].contains("out"))
 				tempelPlusWrapper.deleteFile(folder + files[i]);
@@ -316,11 +333,11 @@ public class TempelPlusWrapperTest {
 		String outputFolder = folder + "output_folder" + slash;
 		tempelPlusWrapper.outputFolderExist(outputFolder);
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc"});
-		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc"}, 0);
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", ".bdoc"});
+		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc", ".bdoc"}, 0);
 		
 		tempelPlusWrapper.runTempelPlus(new String[]{"sign", folder});
-		tempelPlusWrapper.runTempelPlus(new String[]{"remove", recipient, folder, "-output_folder", outputFolder});
+		tempelPlusWrapper.runTempelPlus(new String[]{"remove", cn, folder, "-output_folder", outputFolder});
 		
 		File filesFolder = new File(folder);
 		String[] files = filesFolder.list();
@@ -335,7 +352,7 @@ public class TempelPlusWrapperTest {
 		assertTrue(TP19);
 		
 		for (int l = 0; l < files.length; l++) {
-			if (files[l].endsWith(".ddoc"))
+			if (files[l].endsWith(".ddoc") || files[l].endsWith(".bdoc"))
 				tempelPlusWrapper.deleteFile(folder + files[l]);
 			else if (files[l].contains("_out"))
 				tempelPlusWrapper.deleteFile(folder + files[l]);
@@ -356,7 +373,7 @@ public class TempelPlusWrapperTest {
 		String folder = testDataPath + "TP-20" + slash;
 		String outputFolder = folder + "output_folder" + slash;
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc"});
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", ".bdoc"});
 		tempelPlusWrapper.deleteFile(outputFolder);
 		
 		tempelPlusWrapper.outputFolderExist(outputFolder);
@@ -365,7 +382,7 @@ public class TempelPlusWrapperTest {
 		File fileName = new File(fileIn);
 		String noExtFName = fileName.getName();
 		String newFileName = noExtFName.substring(0, noExtFName.lastIndexOf("."));
-		newFileName = newFileName.concat(".ddoc" + slash);
+		newFileName = newFileName.concat(tempelPlusWrapper.getTestMode().getExtension() + slash);
 		String fileOut = outputFolder + newFileName + fileName.getName();
 		tempelPlusWrapper.createNewContainer(fileIn, container);
 		// if folder doesn't exist
@@ -389,7 +406,7 @@ public class TempelPlusWrapperTest {
 	public final void testTP21() throws Exception {
 		
 		String folder = testDataPath + "TP-21" + slash;
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", "_out"});
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", "_out", ".bdoc"});
 		String outputFolder = folder + "output_folder" + slash;
 		String[] inputFiles = tempelPlusWrapper.getInputFiles(folder);
 		String[] outputFiles = tempelPlusWrapper.getOutputFiles(inputFiles);
@@ -413,7 +430,7 @@ public class TempelPlusWrapperTest {
 			String noExtFName = f.getName();
 			String newFileName = noExtFName.substring(0,
 					noExtFName.lastIndexOf("."));
-			newFileName = newFileName.concat(".ddoc" + slash);
+			newFileName = newFileName.concat(tempelPlusWrapper.getTestMode().getExtension() + slash);
 			String result = outputFolder + newFileName + f.getName();
 			outputFiles[l] = result;
 		}
@@ -445,7 +462,7 @@ public class TempelPlusWrapperTest {
 	public final void testTP22() throws Exception {
 		String folder = testDataPath + "TP-22" + slash;
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", "_out"});
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", "_out", ".bdoc"});
 		
 		String fileIn = tempelPlusWrapper.getInputFile(folder);
 		String fileOut = tempelPlusWrapper.getOutputFile(fileIn);
@@ -470,13 +487,13 @@ public class TempelPlusWrapperTest {
 	@Test
 	public final void testTP23() throws Exception {
 		String folder = testDataPath + "TP-23" + slash;
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", "_out"});
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".bdoc", ".ddoc", "_out"});
 		tempelPlusWrapper.runTempelPlus(new String[]{"container", folder});
 		tempelPlusWrapper.containerRemoveFiles(folder);
 
 		TP23 = tempelPlusWrapper.verifyFolder(folder);
 		assertTrue(TP23);
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc", "_out"});
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".bdoc", ".ddoc", "_out"});
 	}
 
 	/*
@@ -494,7 +511,7 @@ public class TempelPlusWrapperTest {
 		String outputFolder = testDataPath + "TP-24_3" + slash;
 		tempelPlusWrapper.outputFolderExist(outputFolder);
 		
-		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc", "_out"}, 0);
+		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".bdoc", ".ddoc", "_out"}, 0);
 		
 		String addedFilesFolder = testDataPath + "TP-24_2" + slash;
 		String[] inputFiles = tempelPlusWrapper.getInputFiles(folder);
@@ -554,7 +571,7 @@ public class TempelPlusWrapperTest {
 		
 		File filesFolder = new File(outputFolder);
 		String[] files = filesFolder.list();
-		Pattern pattern = Pattern.compile("(out)*(ddoc)*");
+		Pattern pattern = Pattern.compile("(out)*(ddoc)*(bdoc)*");
 		for (int i = 0; i < files.length; i++) {
 			Matcher matcher = pattern.matcher(files[i]);
 			if (matcher.find() == true) {
@@ -576,7 +593,7 @@ public class TempelPlusWrapperTest {
 		String folder = testDataPath + "TP-25" + slash;
 		String outputFolder = testDataPath + "TP-25_3" + slash;
 		tempelPlusWrapper.outputFolderExist(outputFolder);
-		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc", "_out"}, 0);
+		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".bdoc", ".ddoc", "_out"}, 0);
 		
 		String addedFilesFolder = testDataPath + "TP-25_2" + slash;
 		tempelPlusWrapper.runTempelPlus(new String[]{"container", folder, "-output_folder", outputFolder, "-add_file", addedFilesFolder});
@@ -630,7 +647,7 @@ public class TempelPlusWrapperTest {
 		
 		File filesFolder = new File(outputFolder);
 		String[] files = filesFolder.list();
-		Pattern pattern = Pattern.compile("(out)*(ddoc)*");
+		Pattern pattern = Pattern.compile("(out)*(ddoc)*(bdoc)*");
 		for (int i = 0; i < files.length; i++) {
 			Matcher matcher = pattern.matcher(files[i]);
 			if (matcher.find() == true) {
@@ -673,7 +690,7 @@ public class TempelPlusWrapperTest {
 		
 		assertTrue(TP26_28);
 		
-		tempelPlusWrapper.deleteFile(fileIn.split("[.]")[0]+".ddoc");
+		tempelPlusWrapper.deleteFile(fileIn.split("[.]")[0]+".ddoc"); //??
 		tempelPlusWrapper.deleteFile(contFolder);
 		tempelPlusWrapper.cleanFolder(folder, new String[]{".cdoc"}, 1);
 	}
@@ -755,7 +772,7 @@ public class TempelPlusWrapperTest {
 		Arrays.sort(addedFiles);
 		
 		tempelPlusWrapper.cleanFolder(listeningFolder, addedFiles, 0);
-		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc", "_out"}, 0);
+		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".bdoc", ".ddoc", "_out"}, 0);
 		
 		
 		for (int i = 0; i < addedFiles.length; i++) {
@@ -795,6 +812,7 @@ public class TempelPlusWrapperTest {
 			outFiles[i] = aL.get(i);
 			System.out.println("outFiles[" + i + "]: " + outFiles[i]);
 		}
+		Arrays.sort(outFiles);
 		for (int i = 0; i < addedFiles.length; i++)
 			System.out.println("addedFiles[" + i + "]:" + addedFiles[i]);
 		
@@ -810,7 +828,8 @@ public class TempelPlusWrapperTest {
 		assertTrue(TP38);
 		
 		tempelPlusWrapper.cleanFolder(listeningFolder, addedFiles, 0);
-		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".ddoc", "_out"}, 0);		
+		tempelPlusWrapper.cleanFolder(outputFolder, new String[]{".bdoc", ".ddoc", "_out"}, 0);
+		listener.stop();//deprecated way - ok for test automation
 	}
 
 	/*
@@ -896,8 +915,9 @@ public class TempelPlusWrapperTest {
 	 */
 	@Test
 	public final void testTP40() throws Exception  {
+		
 		String folder = testDataPath + "TP-40_41" + slash;
-		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		String fileIn = tempelPlusWrapper.getInputFile(folder, tempelPlusWrapper.getTestMode().getExtension());
 		tempelPlusWrapper.runTempelPlus(new String[]{"verify", fileIn, "-cn", cn});
 		
 		if(tempelPlusWrapper.verifyValidity(fileIn)
@@ -918,7 +938,7 @@ public class TempelPlusWrapperTest {
 	@Test
 	public final void testTP41() throws Exception  {
 		String folder = testDataPath + "TP-40_41" + slash;
-		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		String fileIn = tempelPlusWrapper.getInputFile(folder, tempelPlusWrapper.getTestMode().getExtension());
 		tempelPlusWrapper.runTempelPlus(new String[]{"verify", fileIn, "-cn", "\"WRONG RECIPIENT\""});
 		
 		if(tempelPlusWrapper.verifyOutPut("Verifying file \\d of \\d")
@@ -944,7 +964,7 @@ public class TempelPlusWrapperTest {
 			throw new Exception("Could not create test output directory: " + outputFolder);
 		}
 		
-		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		String fileIn = tempelPlusWrapper.getInputFile(folder, tempelPlusWrapper.getTestMode().getExtension());
 		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", cn, "-output_folder", outputFolder});
 		
 		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
@@ -973,7 +993,7 @@ public class TempelPlusWrapperTest {
 			throw new Exception("Could not create test output directory: " + outputFolder);
 		}
 		
-		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		String fileIn = tempelPlusWrapper.getInputFile(folder, tempelPlusWrapper.getTestMode().getExtension());
 		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", "\"WRONG RECIPIENT\"", "-output_folder", outputFolder});
 		
 		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
@@ -1002,7 +1022,7 @@ public class TempelPlusWrapperTest {
 			throw new Exception("Could not create test output directory: " + outputFolder);
 		}
 		
-		String fileIn = tempelPlusWrapper.getInputFile(folder);
+		String fileIn = tempelPlusWrapper.getInputFile(folder, tempelPlusWrapper.getTestMode().getExtension());
 		tempelPlusWrapper.runTempelPlus(new String[]{"extract", fileIn, "-verify", "-output_folder", outputFolder});
 		
 		if(tempelPlusWrapper.verifyOutPut("Verifying container before extraction.")
@@ -1125,7 +1145,7 @@ public class TempelPlusWrapperTest {
 		String folder = testDataPath + "TP-97" + slash;
 		String outputFolder = folder + "output_folder" + slash;
 		
-		tempelPlusWrapper.cleanFolder(folder, new String[]{".ddoc"});
+		tempelPlusWrapper.cleanFolder(folder, new String[]{".bdoc", ".ddoc"});
 		tempelPlusWrapper.deleteFile(outputFolder);
 		
 		tempelPlusWrapper.outputFolderExist(outputFolder);
@@ -1134,7 +1154,7 @@ public class TempelPlusWrapperTest {
 		File fileName = new File(fileIn);
 		String noExtFName = fileName.getName();
 		String newFileName = noExtFName.substring(0, noExtFName.lastIndexOf("."));
-		newFileName = newFileName.concat(".ddoc" + slash);
+		newFileName = newFileName.concat(tempelPlusWrapper.getTestMode().getExtension() + slash);
 		String fileOut = outputFolder + newFileName + fileName.getName();
 		tempelPlusWrapper.runTempelPlus(new String[]{"sign", fileIn});
 		// if folder doesn't exist
@@ -1210,6 +1230,36 @@ public class TempelPlusWrapperTest {
 		tempelPlusWrapper.deleteFile(outputFolder);
 		assertTrue(TP99);
 	}
+
+//	@Test
+//	public void testt(){
+//		URLClassLoader byClassLoader = (URLClassLoader) URLClassLoader.getSystemClassLoader().getParent();
+//	    Class clKlass = byClassLoader.getClass();
+//	    System.out.println("Classloader: " + clKlass.getCanonicalName());
+//	    while (clKlass != java.lang.ClassLoader.class) {
+//	        clKlass = clKlass.getSuperclass();
+//	    }
+//	    try {
+//	        java.lang.reflect.Field fldClasses = clKlass
+//	                .getDeclaredField("classes");
+//	        fldClasses.setAccessible(true);
+//	        Vector classes = (Vector) fldClasses.get(byClassLoader);
+//	        for (Iterator iter = classes.iterator(); iter.hasNext();) {
+//	            System.out.println("   Loaded " + iter.next());
+//	        }
+//	    } catch (SecurityException e) {
+//	        e.printStackTrace();
+//	    } catch (IllegalArgumentException e) {
+//	        e.printStackTrace();
+//	    } catch (NoSuchFieldException e) {
+//	        e.printStackTrace();
+//	    } catch (IllegalAccessException e) {
+//	        e.printStackTrace();
+//	    }
+//	    
+////	    System.out.println(java.lang.instrument.Instrumentation.this.getAllLoadedClasses());
+//	    
+//	}
 	
 	
 }
