@@ -1,12 +1,12 @@
 package ee.sk.tempelPlus;
 
 import java.io.File;
-
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.activation.MimetypesFileTypeMap;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -201,7 +201,7 @@ public class Sign extends TempelPlus {
 							digFac = ConfigManager.instance().getDigiDocFactory();
 						sdoc = digFac.readSignedDoc(file.getAbsolutePath());
 					}
-
+					System.gc(); // clean up after adding a data file
 					//prepare signature
 					Signature sig = sdoc.prepareSignature(cert, roles, addr);
 					byte[] sidigest = sig.calculateSignedInfoDigest();
@@ -276,7 +276,12 @@ public class Sign extends TempelPlus {
 					//sdoc.cleanupDfCache();
 					if (follow || remInput) {
 						log.info("trying to delete file:" + file.getName());
-						file.delete();
+						boolean ok = file.delete();
+						if (!ok) { // if file deletion did not succeed
+							System.gc();
+							ok = file.delete();
+						}
+						log.info("file deletion succeeded: " + ok);
 					}
 					i++;
 					log.info("Done");
