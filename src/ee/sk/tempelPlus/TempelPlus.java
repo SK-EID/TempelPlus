@@ -53,7 +53,7 @@ public abstract class TempelPlus {
 	
 	public File outputFolder;
 	private static String configFile = null;
-	public static final String version = "v1.3.0";
+	public static final String version = "v1.3.1";
 	static long start = 0;
 
 	private static Logger log = null;

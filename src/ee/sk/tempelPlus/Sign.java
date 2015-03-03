@@ -200,6 +200,7 @@ public class Sign extends TempelPlus {
 						if (digFac == null)
 							digFac = ConfigManager.instance().getDigiDocFactory();
 						sdoc = digFac.readSignedDoc(file.getAbsolutePath());
+						sdoc.setProfile(SignedDoc.BDOC_PROFILE_TM);
 					}
 					System.gc(); // clean up after adding a data file
 					//prepare signature
