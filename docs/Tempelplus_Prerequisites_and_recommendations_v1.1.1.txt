@@ -1,0 +1,20 @@
+Requirements and recommendations:
+
+* Already installed on the computer:
+  *Java JDK/JRE ver 1.6 or higher
+  * Aladdin eToken software, you receive the Aladdin eToken 
+software when you order from SK your digital stamp on the 
+Aladdin eToken USB stick.
+* If you have already been using previous versions of TempelPlus 
+(v 0.99 or 1.0.0), you can create a backup of the configuration file 
+(Tempelplus.conf). NB!  A new version of the software has more 
+configuration parameters than previous versions. Configuration files 
+from previous versions are not suitable for use in one-to-one in the 
+new version.
+* Since the new version contains many enhancements and also the 
+installation has changed (formerly there was .msi package, now zip / 
+tar.gz container), you are advised to read the new version changelog 
+(Chapter 2.1), software installation (Chapter 3 ) and configuration 
+(Chapter 6) of the software documentation, which is located in the 
+installation package  docs subdirectory. Chapter 7 describes, how to 
+use TempelPlus with test-digital stamp.

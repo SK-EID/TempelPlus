@@ -1,0 +1,57 @@
+TempelPlus release notes
+------------------------------------
+
+Version 1.3.0, 23.07.2014
+-------------------------
+Summary
+-------
+- Supported operating systems: Windows and Linux
+- Installation prerequisites and recommendations: https://github.com/sertkeskus/TempelPlus/blob/master/docs/Tempelplus_Prerequisites_and_recommendations_v1.1.1.txt
+
+Changes
+-------
+- Added BDOC support
+- Changes and bug fixes are listed in TempelPlus documentation, chapter 2.1
+
+
+
+Version 1.2.0 (Beta), 01.02.2013 (updated 13.01.2014)
+-------------------------
+Summary
+-------
+- Supported operating systems: Windows and Linux
+- Installation prerequisites and recommendations: https://github.com/sertkeskus/TempelPlus/blob/master/docs/Tempelplus_Prerequisites_and_recommendations_v1.1.1.txt
+
+Changes
+-------
+- Changes and bug fixes are listed in TempelPlus documentation, chapter 2.1
+- 13.01.2014 version - fixed JDigiDoc error where signature XML's X509IssuerName and X509SerialNumber elements were in the wrong namespace.
+
+
+
+Version 1.0.0 (Windows)
+-------------------------
+Summary
+-------
+Only the command line version of the TempelPlus software, working with the following version of the Windows operating system: WinXP, Vista, Windows 7.
+
+TempelPlus 1.0.0 installation on Windows computers: requirements and recommendations:
+  - Already installed on the computer: Java JDK/JRE 
+    - NB! Only Java 6 is currently supported (Java 7 is not supported)
+    - NB! You must ensure that 32-bit Java is installed, irrespective of whether the Windows version is 32-bit or 64-bit. You can download the corresponding Java installation package from here: http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-windows-i586.exe. For downloading please accept Java terms of conditions
+  - Already installed on the computer: ID-card software (if signing is performed using a digital stamp on a microchip card) or Aladdin eToken software (if signing is performed using an Aladdin eToken USB stick). You can download and install the ID card basic software from https://installer.id.ee, while you receive the Aladdin eToken software when you order from SK your digital stamp on the Aladdin eToken USB stick.
+    - NB! TempelPlus cannot be used for signing with a digital stamp on a microchip card in 64-bit Windows
+  - If you have already been using the beta version of TempelPlus (v 0.99), you can create a backup of the Tempelplus.conf file in the TempelPlus application folder (example path – C:\Program Files\Tempelplus\). Then you must uninstall the beta version (v 0.99). After that you can install the new version and use the old configuration file to retain your specific settings.
+
+After you install TempelPlus 1.0.0:
+  - The software can be used when you have access to the SK validity confirmation (OCSP) service. Access to the OCSP is subject to agreement and can be either IP-based or via the enterprise access certificate.
+  - For IP-based access you must enter and save the following lines in the Tempelplus.conf file in the TempelPlus software folder:
+    - SIGN_OCSP_REQUESTS=false
+    - DIGIDOC_OCSP_RESPONDER_URL=http://ocsp.sk.ee
+  - For access with the access certificate (access certificate file in the .p12d format and password) you must enter and save the following lines in the Tempelplus.conf file in the TempelPlus software folder (replace the file location and password):
+    - SIGN_OCSP_REQUESTS=true
+    - DIGIDOC_OCSP_RESPONDER_URL=http://ocsp.sk.ee 
+    - DIGIDOC_PKCS12_CONTAINER=C:\\Program Files\\TempelPlus\\certs\\281156.p12d 
+    - DIGIDOC_PKCS12_PASSWD=7s2333w
+ 
+Most of the TempelPlus software settings are determined by the installation package. The user manual that comes with the software describes all software settings and their changing procedure.
