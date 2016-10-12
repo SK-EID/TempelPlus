@@ -7,3 +7,7 @@ The TempelPlus software is a useful assistant when there are many files to be si
 More info about digital stamps and possibilities for purchasing is available at Sertifitseerimsikeskus website: https://www.sk.ee/en/services/Digital-stamp
 
 Usage instructions can be found from TempelPlus User Manual: https://github.com/sertkeskus/TempelPlus/blob/master/docs/TempelPlus%20User%20Manual%20v1.3.0.pdf
+
+Instructions for using the automated tests are provided in https://github.com/sertkeskus/TempelPlus/blob/master/docs/Automaattestide%20k%C3%A4ivitamine1.4.pdf (in Estonian). Data for testing is linked as a submodule (see https://github.com/sertkeskus/TempelPlus_TestData).
+
+NB! TempelPlus software is not officially supported anymore. Source code is provided on "as is" terms with no warranty, you are welcome to redistribute and reuse the software (see LICENSE for more information). 
